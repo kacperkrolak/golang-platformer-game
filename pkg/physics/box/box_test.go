@@ -48,3 +48,16 @@ func TestBox_Bottom(t *testing.T) {
 		t.Errorf("expected 22, got %v", box.Bottom())
 	}
 }
+func TestBox_Center(t *testing.T) {
+	box := Box{
+		Position: vector.Vector2{X: 10, Y: 20},
+		Size:     vector.Vector2{X: 1, Y: 2},
+	}
+
+	expectedCenter := vector.Vector2{X: 10.5, Y: 21}
+	actualCenter := box.Center()
+
+	if actualCenter != expectedCenter {
+		t.Errorf("expected %v, got %v", expectedCenter, actualCenter)
+	}
+}

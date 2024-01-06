@@ -24,3 +24,10 @@ func (b Box) Top() float64 {
 func (b Box) Bottom() float64 {
 	return b.Position.Y + b.Size.Y
 }
+
+func (b Box) Center() vector.Vector2 {
+	return vector.Vector2{
+		X: b.Position.X + b.Size.X/2,
+		Y: b.Position.Y + b.Size.Y/2,
+	}
+}

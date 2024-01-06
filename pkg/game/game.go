@@ -8,6 +8,7 @@ import (
 	"kacperkrolak/golang-platformer-game/pkg/physics/box"
 	"kacperkrolak/golang-platformer-game/pkg/physics/rigidbody"
 	"kacperkrolak/golang-platformer-game/pkg/physics/vector"
+	"kacperkrolak/golang-platformer-game/pkg/visuals/particle"
 	"log"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -26,6 +27,7 @@ type Game struct {
 	tileSize       int
 	player         *player.Player
 	camera         camera.Camera
+	particleSystem *particle.ParticleSystem
 }
 
 const TileSize = 16
@@ -67,6 +69,7 @@ func MakeGame(mapFile string, textureFile string, characterFile string) Game {
 			Target:     &player,
 			SmoothTime: 15,
 		},
+		particleSystem: &particle.ParticleSystem{},
 	}
 }
 
@@ -79,7 +82,7 @@ func (g *Game) Update() error {
 		g.player.Grounded = true
 	}
 
-	g.player.Update(tps, g.tileSize)
+	g.player.Update(tps, g.tileSize, g.particleSystem)
 
 	for _, row := range g.gameMap.Tiles {
 		for _, t := range row {
@@ -90,6 +93,8 @@ func (g *Game) Update() error {
 			g.player.Rigidbody.MoveOutOfBox(t.Hitbox)
 		}
 	}
+
+	g.particleSystem.Update()
 
 	err := g.camera.Update(tps)
 	if err != nil {
@@ -108,6 +113,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	offsetX, offsetY := g.getScreenPosition(0, 0)
 	g.gameMap.Draw(screen, offsetX, offsetY, g.tilesImage, g.tileSize)
 	g.player.Draw(screen, offsetX, offsetY, g.characterImage, g.tileSize)
+	g.particleSystem.Draw(screen, vector.Vector2{X: offsetX, Y: offsetY})
 	ebitenutil.DebugPrint(screen, fmt.Sprintf("TPS: %f", ebiten.ActualTPS()))
 }
 

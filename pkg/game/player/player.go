@@ -4,6 +4,8 @@ import (
 	"kacperkrolak/golang-platformer-game/pkg/physics/box"
 	"kacperkrolak/golang-platformer-game/pkg/physics/rigidbody"
 	"kacperkrolak/golang-platformer-game/pkg/physics/vector"
+	"kacperkrolak/golang-platformer-game/pkg/visuals/particle"
+	"kacperkrolak/golang-platformer-game/pkg/visuals/particle/smoke"
 
 	"github.com/hajimehoshi/ebiten/v2"
 )
@@ -19,7 +21,7 @@ type Player struct {
 	FacingRight   bool
 }
 
-func (p *Player) Update(tps float64, tileSize int) error {
+func (p *Player) Update(tps float64, tileSize int, particleSystem *particle.ParticleSystem) error {
 	p.Frame += 1
 	if p.Frame%15 == 0 {
 		p.State = (p.State + 1) % 2
@@ -39,6 +41,7 @@ func (p *Player) Update(tps float64, tileSize int) error {
 	}
 
 	if p.Grounded && ebiten.IsKeyPressed(ebiten.KeySpace) {
+		particleSystem.AddParticles(smoke.CreateEffect(p.SurfaceDetector().Center(), 5, 7, 0.75, 60))
 		JUMP_FORCE := 4.0
 		p.Rigidbody.AddForce(vector.Vector2{X: 0, Y: -JUMP_FORCE})
 	}
