@@ -9,21 +9,20 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
-func loadGameMap(mapFile string) (gamemap.Map, error) {
+func loadGameMap(mapFile string, tileSize int) (gamemap.Map, error) {
 	file, err := os.Open(mapFile)
 	if err != nil {
 		return gamemap.Map{}, err
 	}
+	defer file.Close()
 
 	parser := parser.MapDataParser{}
-	gameMap, err := parser.Load(file)
+	tiles, err := parser.LoadTiles(file)
 	if err != nil {
-		return gameMap, err
+		return gamemap.Map{}, err
 	}
-	file.Close()
 
-	gameMap.FindVariants()
-	gameMap.CreateHitboxes(16)
+	gameMap := gamemap.MakeMap(tiles, tileSize)
 
 	return gameMap, nil
 }

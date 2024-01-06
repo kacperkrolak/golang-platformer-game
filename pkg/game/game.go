@@ -28,8 +28,10 @@ type Game struct {
 	camera         camera.Camera
 }
 
+const TileSize = 16
+
 func MakeGame(mapFile string, textureFile string, characterFile string) Game {
-	gameMap, err := loadGameMap(mapFile)
+	gameMap, err := loadGameMap(mapFile, TileSize)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -51,13 +53,13 @@ func MakeGame(mapFile string, textureFile string, characterFile string) Game {
 				Size:     vector.Vector2{X: 14, Y: 21},
 			},
 		},
-		Speed: 10 * 16,
+		Speed: 10 * TileSize,
 	}
 	return Game{
 		gameMap:        gameMap,
 		tilesImage:     tilesImage,
 		characterImage: characterImage,
-		tileSize:       16,
+		tileSize:       TileSize,
 		player:         &player,
 		camera: camera.Camera{
 			Position:   vector.Vector2{X: 0, Y: 0},
@@ -72,19 +74,9 @@ func (g *Game) Update() error {
 	// Update is run 60 times a second by default
 	tps := float64(60)
 
-	surfaceDetector := g.player.SurfaceDetector()
 	g.player.Grounded = false
-	for _, row := range g.gameMap.Tiles {
-		for _, t := range row {
-			if !t.IsCollidable() {
-				continue
-			}
-
-			if surfaceDetector.CollidesWith(t.Hitbox) {
-				g.player.Grounded = true
-				break
-			}
-		}
+	if g.gameMap.CollidesWith(g.player.SurfaceDetector()) {
+		g.player.Grounded = true
 	}
 
 	g.player.Update(tps, g.tileSize)
@@ -116,7 +108,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	offsetX, offsetY := g.getScreenPosition(0, 0)
 	g.gameMap.Draw(screen, offsetX, offsetY, g.tilesImage, g.tileSize)
 	g.player.Draw(screen, offsetX, offsetY, g.characterImage, g.tileSize)
-	ebitenutil.DebugPrint(screen, fmt.Sprintf("POS: %f %f Camera: %f %f", g.player.Rigidbody.Hitbox.Left(), g.player.Rigidbody.Hitbox.Top(), g.camera.Position.X, g.camera.Position.Y))
+	ebitenutil.DebugPrint(screen, fmt.Sprintf("TPS: %f", ebiten.ActualTPS()))
 }
 
 func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {

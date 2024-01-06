@@ -7,15 +7,19 @@ import (
 )
 
 type Parser interface {
-	Load(io.Reader) Map
+	LoadTiles(io.Reader) [][]Tile
 }
 
 type Map struct {
-	Tiles [][]Tile
+	Tiles    [][]Tile
+	TileSize int
 }
 
 func MakeMap(tiles [][]Tile, tileSize int) Map {
-	m := Map{Tiles: tiles}
+	m := Map{
+		Tiles:    tiles,
+		TileSize: tileSize,
+	}
 	m.FindVariants()
 	m.CreateHitboxes(tileSize)
 	return m

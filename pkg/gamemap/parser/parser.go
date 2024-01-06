@@ -10,19 +10,19 @@ import (
 type MapDataParser struct {
 }
 
-func (parser MapDataParser) Load(reader io.Reader) (gamemap.Map, error) {
+func (parser MapDataParser) LoadTiles(reader io.Reader) ([][]gamemap.Tile, error) {
 	if reader == nil {
-		return gamemap.Map{}, fmt.Errorf("reader cannot be nil")
+		return nil, fmt.Errorf("reader cannot be nil")
 	}
 
 	scanner := bufio.NewScanner(reader)
 	parser.readMetaData(scanner)
-	gameMap, err := parser.readMapData(scanner)
+	tiles, err := parser.readMapData(scanner)
 	if err != nil {
-		return gamemap.Map{}, err
+		return nil, err
 	}
 
-	return gameMap, nil
+	return tiles, nil
 }
 
 func (parser MapDataParser) readMetaData(scanner *bufio.Scanner) error {
@@ -36,7 +36,7 @@ func (parser MapDataParser) readMetaData(scanner *bufio.Scanner) error {
 	return fmt.Errorf("meta data must end with three dashes")
 }
 
-func (parser MapDataParser) readMapData(scanner *bufio.Scanner) (gamemap.Map, error) {
+func (parser MapDataParser) readMapData(scanner *bufio.Scanner) ([][]gamemap.Tile, error) {
 	tiles := make([][]gamemap.Tile, 0)
 	for scanner.Scan() {
 		line := scanner.Text()
@@ -50,15 +50,15 @@ func (parser MapDataParser) readMapData(scanner *bufio.Scanner) (gamemap.Map, er
 		}
 
 		if len(tiles) > 0 && len(row) != len(tiles[0]) {
-			return gamemap.Map{}, fmt.Errorf("all rows must have the same length")
+			return nil, fmt.Errorf("all rows must have the same length")
 		}
 
 		tiles = append(tiles, row)
 	}
 
 	if len(tiles) == 0 {
-		return gamemap.Map{}, fmt.Errorf("map must have at least one row")
+		return nil, fmt.Errorf("map must have at least one row")
 	}
 
-	return gamemap.Map{Tiles: tiles}, nil
+	return tiles, nil
 }

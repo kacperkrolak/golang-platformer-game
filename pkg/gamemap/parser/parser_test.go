@@ -8,17 +8,17 @@ import (
 	"github.com/google/go-cmp/cmp"
 )
 
-func TestLoad(t *testing.T) {
+func TestParser_LoadTiles(t *testing.T) {
 	testCases := []struct {
 		name    string
 		input   string
-		wanted  gamemap.Map
+		wanted  [][]gamemap.Tile
 		wantErr bool
 	}{
 		{
 			name:    "should return an error if the reader is nil or empty",
 			input:   "",
-			wanted:  gamemap.Map{},
+			wanted:  nil,
 			wantErr: true,
 		},
 		{
@@ -29,29 +29,27 @@ _____
 xx___
 xxxxx
 `,
-			wanted: gamemap.Map{
-				Tiles: [][]gamemap.Tile{
-					{
-						gamemap.Tile{Type: gamemap.EMPTY},
-						gamemap.Tile{Type: gamemap.EMPTY},
-						gamemap.Tile{Type: gamemap.EMPTY},
-						gamemap.Tile{Type: gamemap.EMPTY},
-						gamemap.Tile{Type: gamemap.EMPTY},
-					},
-					{
-						gamemap.Tile{Type: gamemap.DIRT},
-						gamemap.Tile{Type: gamemap.DIRT},
-						gamemap.Tile{Type: gamemap.EMPTY},
-						gamemap.Tile{Type: gamemap.EMPTY},
-						gamemap.Tile{Type: gamemap.EMPTY},
-					},
-					{
-						gamemap.Tile{Type: gamemap.DIRT},
-						gamemap.Tile{Type: gamemap.DIRT},
-						gamemap.Tile{Type: gamemap.DIRT},
-						gamemap.Tile{Type: gamemap.DIRT},
-						gamemap.Tile{Type: gamemap.DIRT},
-					},
+			wanted: [][]gamemap.Tile{
+				{
+					gamemap.Tile{Type: gamemap.EMPTY},
+					gamemap.Tile{Type: gamemap.EMPTY},
+					gamemap.Tile{Type: gamemap.EMPTY},
+					gamemap.Tile{Type: gamemap.EMPTY},
+					gamemap.Tile{Type: gamemap.EMPTY},
+				},
+				{
+					gamemap.Tile{Type: gamemap.DIRT},
+					gamemap.Tile{Type: gamemap.DIRT},
+					gamemap.Tile{Type: gamemap.EMPTY},
+					gamemap.Tile{Type: gamemap.EMPTY},
+					gamemap.Tile{Type: gamemap.EMPTY},
+				},
+				{
+					gamemap.Tile{Type: gamemap.DIRT},
+					gamemap.Tile{Type: gamemap.DIRT},
+					gamemap.Tile{Type: gamemap.DIRT},
+					gamemap.Tile{Type: gamemap.DIRT},
+					gamemap.Tile{Type: gamemap.DIRT},
 				},
 			},
 			wantErr: false,
@@ -61,7 +59,7 @@ xxxxx
 	for _, testCase := range testCases {
 		t.Run(testCase.name, func(t *testing.T) {
 			parser := MapDataParser{}
-			got, err := parser.Load(strings.NewReader(testCase.input))
+			got, err := parser.LoadTiles(strings.NewReader(testCase.input))
 
 			if (err != nil) != testCase.wantErr {
 				t.Errorf("Load() error = %v, wantErr %v", err, testCase.wantErr)
