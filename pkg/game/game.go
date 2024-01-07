@@ -10,6 +10,7 @@ import (
 	"kacperkrolak/golang-platformer-game/pkg/physics/vector"
 	"kacperkrolak/golang-platformer-game/pkg/visuals/particle"
 	"log"
+	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
@@ -48,6 +49,7 @@ func MakeGame(mapFile string, textureFile string, characterFile string) Game {
 		log.Fatal(err)
 	}
 
+	particleSystem := particle.ParticleSystem{}
 	player := player.Player{
 		Rigidbody: rigidbody.Rigidbody{
 			Hitbox: box.Box{
@@ -55,8 +57,10 @@ func MakeGame(mapFile string, textureFile string, characterFile string) Game {
 				Size:     vector.Vector2{X: 14, Y: 21},
 			},
 		},
-		Speed: 10 * TileSize,
+		Speed:          10 * TileSize,
+		ParticleSystem: &particleSystem,
 	}
+
 	return Game{
 		gameMap:        gameMap,
 		tilesImage:     tilesImage,
@@ -69,20 +73,28 @@ func MakeGame(mapFile string, textureFile string, characterFile string) Game {
 			Target:     &player,
 			SmoothTime: 15,
 		},
-		particleSystem: &particle.ParticleSystem{},
+		particleSystem: &particleSystem,
 	}
 }
 
 func (g *Game) Update() error {
 	// Update is run 60 times a second by default
 	tps := float64(60)
+	deltaTime := time.Duration(1 / tps * float64(time.Second))
 
 	if g.gameMap.CollidesWith(g.player.SurfaceDetector()) {
-		g.player.UpdateGroundedState(true, g.particleSystem)
+		g.player.UpdateGroundedState(true)
 	} else {
-		g.player.UpdateGroundedState(false, g.particleSystem)
+		g.player.UpdateGroundedState(false)
 	}
-	g.player.Update(tps, g.tileSize, g.particleSystem)
+
+	if g.gameMap.CollidesWith(g.player.WallDetector()) {
+		g.player.UpdateWallSlidingState(true)
+	} else {
+		g.player.UpdateWallSlidingState(false)
+	}
+
+	g.player.Update(deltaTime, g.tileSize)
 
 	for _, row := range g.gameMap.Tiles {
 		for _, t := range row {

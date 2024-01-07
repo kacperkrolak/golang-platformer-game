@@ -8,8 +8,7 @@ import (
 	"kacperkrolak/golang-platformer-game/pkg/visuals/particle"
 	"kacperkrolak/golang-platformer-game/pkg/visuals/particle/smoke"
 	"math"
-
-	"github.com/hajimehoshi/ebiten/v2"
+	"time"
 )
 
 type motionSettings struct {
@@ -29,12 +28,16 @@ type Player struct {
 	IsMoving         bool
 	FacingRight      bool
 	motion           motionSettings
+	JumpingCooldown  time.Duration
+	MovingCooldown   time.Duration // Disables movement for a short time after wall jumping
+	ParticleSystem   *particle.ParticleSystem
+	wallJumpData     wallJumpData
 }
 
-func (p *Player) UpdateGroundedState(grounded bool, particleSystem *particle.ParticleSystem) {
+func (p *Player) UpdateGroundedState(grounded bool) {
 	if grounded && !p.motion.Grounded && p.PreviousVelocity.Y > 0 {
 		particleCount := uint(p.PreviousVelocity.Y)
-		particleSystem.AddParticles(smoke.CreateEffect(p.SurfaceDetector().Center(), particleCount, 4, 0.5, 60, color.RGBA{R: 222, G: 184, B: 135, A: 255}))
+		p.ParticleSystem.AddParticles(smoke.CreateEffect(p.SurfaceDetector().Center(), particleCount, 4, 0.5, 60, color.RGBA{R: 222, G: 184, B: 135, A: 255}))
 	}
 
 	if grounded {
@@ -49,6 +52,12 @@ func (p *Player) UpdateGroundedState(grounded bool, particleSystem *particle.Par
 // hanging in the air for a moment.
 func (p *Player) AdjustMotionSettings() {
 	baseGravity := 9.81
+	if p.IsWalled() {
+		p.motion.Gravity = 0
+		p.Rigidbody.Velocity.Y = 1
+		return
+	}
+
 	slowGravityThreshold := 0.5
 	if !p.motion.IsJumping || math.Abs(p.Rigidbody.Velocity.Y) < slowGravityThreshold {
 		p.motion.Gravity = baseGravity
@@ -62,7 +71,13 @@ func (p *Player) AdjustMotionSettings() {
 	p.motion.Speed = p.Speed * jumpHangSpeedMultiplier
 }
 
-func (p *Player) Update(tps float64, tileSize int, particleSystem *particle.ParticleSystem) error {
+func (p *Player) Update(deltaTime time.Duration, tileSize int) error {
+	deltaTimeFloat := deltaTime.Seconds()
+	p.wallJumpData.WallSlidingTime -= deltaTime
+	p.JumpingCooldown -= deltaTime
+	p.wallJumpData.WallSlidingCooldown -= deltaTime
+	p.MovingCooldown -= deltaTime
+
 	p.AdjustMotionSettings()
 
 	p.Frame += 1
@@ -71,27 +86,13 @@ func (p *Player) Update(tps float64, tileSize int, particleSystem *particle.Part
 		p.IsMoving = false
 	}
 
-	if ebiten.IsKeyPressed(ebiten.KeyRight) {
-		p.Rigidbody.Hitbox.Position.X += p.motion.Speed / tps
-		p.IsMoving = true
-		p.FacingRight = true
-	}
-
-	if ebiten.IsKeyPressed(ebiten.KeyLeft) {
-		p.Rigidbody.Hitbox.Position.X -= p.motion.Speed / tps
-		p.IsMoving = true
-		p.FacingRight = false
-	}
-
-	if p.motion.Grounded && ebiten.IsKeyPressed(ebiten.KeySpace) {
-		p.motion.IsJumping = true
-		particleSystem.AddParticles(smoke.CreateEffect(p.SurfaceDetector().Center(), 5, 7, 0.75, 60, color.RGBA{R: 255, G: 255, B: 255, A: 255}))
-		JUMP_FORCE := 4.0
-		p.Rigidbody.AddForce(vector.Vector2{X: 0, Y: -JUMP_FORCE})
-	}
+	p.HandleInput(deltaTimeFloat)
 
 	// Gravity
-	p.Rigidbody.AddForce(vector.Vector2{X: 0, Y: p.motion.Gravity / tps})
+	if math.Abs(p.Rigidbody.Velocity.X) > 0 {
+		p.Rigidbody.AddForce(vector.Vector2{X: -p.Rigidbody.Velocity.X / 10, Y: 0})
+	}
+	p.Rigidbody.AddForce(vector.Vector2{X: 0, Y: p.motion.Gravity * deltaTimeFloat})
 	// p.Rigidbody.AddForce(vector.Friction(p.Rigidbody.Velocity, 0.5/tps))
 	p.Rigidbody.ApplyAcceleration()
 	p.Rigidbody.ApplyVelocity()
