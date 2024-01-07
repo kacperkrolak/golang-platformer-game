@@ -77,11 +77,11 @@ func (g *Game) Update() error {
 	// Update is run 60 times a second by default
 	tps := float64(60)
 
-	g.player.Grounded = false
 	if g.gameMap.CollidesWith(g.player.SurfaceDetector()) {
-		g.player.Grounded = true
+		g.player.UpdateGroundedState(true, g.particleSystem)
+	} else {
+		g.player.UpdateGroundedState(false, g.particleSystem)
 	}
-
 	g.player.Update(tps, g.tileSize, g.particleSystem)
 
 	for _, row := range g.gameMap.Tiles {
@@ -114,7 +114,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	g.gameMap.Draw(screen, offsetX, offsetY, g.tilesImage, g.tileSize)
 	g.player.Draw(screen, offsetX, offsetY, g.characterImage, g.tileSize)
 	g.particleSystem.Draw(screen, vector.Vector2{X: offsetX, Y: offsetY})
-	ebitenutil.DebugPrint(screen, fmt.Sprintf("TPS: %f", ebiten.ActualTPS()))
+	ebitenutil.DebugPrint(screen, fmt.Sprintf("TPS: %f, FPS: %f", ebiten.ActualTPS(), ebiten.ActualFPS()))
 }
 
 func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {

@@ -15,7 +15,7 @@ type Particle struct {
 	Velocity vector.Vector2
 	Life     int
 	MaxLife  int
-	Color    color.RGBA
+	Color    color.Color
 }
 
 func (p *Particle) Update() {
@@ -38,9 +38,9 @@ func (p *Particle) Draw(screen *ebiten.Image, cameraOffset vector.Vector2) {
 	screen.DrawImage(image, op)
 }
 
-func CreateEffect(position vector.Vector2, count int, radius int, speed float64, life int) []particle.Particle {
+func CreateEffect(position vector.Vector2, count uint, radius int, speed float64, life int, color color.Color) []particle.Particle {
 	particles := make([]particle.Particle, count)
-	for i := 0; i < count; i++ {
+	for i := uint(0); i < count; i++ {
 		velocity := vector.Vector2{
 			X: rand.Float64() - 0.5,
 			Y: -rand.Float64(),
@@ -59,7 +59,7 @@ func CreateEffect(position vector.Vector2, count int, radius int, speed float64,
 			Velocity: velocity.Normalized().Scaled(speed),
 			Life:     life,
 			MaxLife:  life,
-			Color:    color.RGBA{R: 0xff, G: 0xff, B: 0xff, A: 0xff},
+			Color:    color,
 		}
 		particles[i] = &p
 	}
