@@ -2,6 +2,7 @@ package game
 
 import (
 	"fmt"
+	"image/color"
 	"kacperkrolak/golang-platformer-game/pkg/game/camera"
 	"kacperkrolak/golang-platformer-game/pkg/game/player"
 	"kacperkrolak/golang-platformer-game/pkg/gamemap"
@@ -57,7 +58,7 @@ func MakeGame(mapFile string, textureFile string, characterFile string) Game {
 				Size:     vector.Vector2{X: 14, Y: 21},
 			},
 		},
-		Speed:          10 * TileSize,
+		Speed:          8.5 * TileSize,
 		ParticleSystem: &particleSystem,
 	}
 
@@ -102,7 +103,16 @@ func (g *Game) Update() error {
 				continue
 			}
 
-			g.player.Rigidbody.MoveOutOfBox(t.Hitbox)
+			if t.Type == gamemap.SPIKES {
+				// Make the game more fair by allowing player to touch 1 pixel of spikes
+				displacementVector := g.player.Rigidbody.Hitbox.DisplacementVector(t.Hitbox)
+				if displacementVector.Length() > 2 {
+					g.player.Rigidbody.Hitbox.Position = vector.Vector2{X: 0, Y: 0}
+				}
+				continue
+			}
+			dispacement := g.player.Rigidbody.MoveOutOfBox(t.Hitbox)
+			g.player.OnBumping(dispacement)
 		}
 	}
 
@@ -122,6 +132,10 @@ func (g *Game) getScreenPosition(x, y float64) (float64, float64) {
 }
 
 func (g *Game) Draw(screen *ebiten.Image) {
+	// 6b978d
+	background := color.RGBA{R: 107, G: 151, B: 141, A: 255}
+	screen.Fill(background)
+
 	offsetX, offsetY := g.getScreenPosition(0, 0)
 	g.gameMap.Draw(screen, offsetX, offsetY, g.tilesImage, g.tileSize)
 	g.player.Draw(screen, offsetX, offsetY, g.characterImage, g.tileSize)

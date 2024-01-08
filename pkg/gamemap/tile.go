@@ -5,8 +5,9 @@ import "kacperkrolak/golang-platformer-game/pkg/physics/box"
 type TileType rune
 
 const (
-	EMPTY TileType = '_'
-	DIRT  TileType = 'x'
+	EMPTY  TileType = '_'
+	DIRT   TileType = 'x'
+	SPIKES TileType = '^'
 )
 
 // Flags to indecate whether there different type of tile on the left, right, top or bottom.

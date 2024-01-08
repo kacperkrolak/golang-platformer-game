@@ -7,6 +7,22 @@ type Vector2 struct {
 	Y float64
 }
 
+func Right() Vector2 {
+	return Vector2{X: 1, Y: 0}
+}
+
+func Left() Vector2 {
+	return Vector2{X: -1, Y: 0}
+}
+
+func Up() Vector2 {
+	return Vector2{X: 0, Y: -1}
+}
+
+func Down() Vector2 {
+	return Vector2{X: 0, Y: 1}
+}
+
 func (v *Vector2) Add(v2 Vector2) *Vector2 {
 	v.X += v2.X
 	v.Y += v2.Y

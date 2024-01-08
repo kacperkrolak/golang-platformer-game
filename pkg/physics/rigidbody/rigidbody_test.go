@@ -171,7 +171,7 @@ func TestRigidbody_ApplyVelocity(t *testing.T) {
 				Velocity: tc.velocity,
 			}
 
-			rb.ApplyVelocity()
+			rb.ApplyVelocity(1)
 
 			if rb.Hitbox.Position != tc.expectedFinal {
 				t.Errorf("expected final position %v, got %v", tc.expectedFinal, rb.Hitbox.Position)

@@ -2,6 +2,7 @@ package player
 
 import (
 	"image/color"
+	"kacperkrolak/golang-platformer-game/pkg/input"
 	"kacperkrolak/golang-platformer-game/pkg/physics/box"
 	"kacperkrolak/golang-platformer-game/pkg/physics/rigidbody"
 	"kacperkrolak/golang-platformer-game/pkg/physics/vector"
@@ -12,10 +13,12 @@ import (
 )
 
 type motionSettings struct {
-	Speed     float64
-	Gravity   float64
-	Grounded  bool
-	IsJumping bool
+	Speed                 float64
+	Gravity               float64
+	GroundedThisFrame     bool
+	DurationSinceGrounded time.Duration
+	IsJumping             bool
+	movementSlowdown      float64
 }
 
 type Player struct {
@@ -25,50 +28,51 @@ type Player struct {
 	CameraOffsetX    float64
 	Frame            int
 	State            int
-	IsMoving         bool
 	FacingRight      bool
 	motion           motionSettings
 	JumpingCooldown  time.Duration
-	MovingCooldown   time.Duration // Disables movement for a short time after wall jumping
+	MovingCooldown   time.Duration // Slows horizontal movement for a short time after wall jumping
 	ParticleSystem   *particle.ParticleSystem
 	wallJumpData     wallJumpData
 }
 
 func (p *Player) UpdateGroundedState(grounded bool) {
-	if grounded && !p.motion.Grounded && p.PreviousVelocity.Y > 0 {
-		particleCount := uint(p.PreviousVelocity.Y)
-		p.ParticleSystem.AddParticles(smoke.CreateEffect(p.SurfaceDetector().Center(), particleCount, 4, 0.5, 60, color.RGBA{R: 222, G: 184, B: 135, A: 255}))
-	}
-
-	if grounded {
-		p.motion.IsJumping = false
-	}
-
-	p.motion.Grounded = grounded
+	p.motion.GroundedThisFrame = grounded
 }
 
 // To make the player feel more responsive, when the player is the highest point of the jump
 // the gravity is reduced and the speed is increased. This makes the player feel like they are
 // hanging in the air for a moment.
 func (p *Player) AdjustMotionSettings() {
-	baseGravity := 9.81
-	if p.IsWalled() {
-		p.motion.Gravity = 0
-		p.Rigidbody.Velocity.Y = 1
+	speed := p.Speed
+	if p.MovingCooldown > 0 {
+		p.motion.movementSlowdown = 0.1
+	} else {
+		p.motion.movementSlowdown = 1
+	}
+
+	// Gravity * tileSize * multiplier
+	baseGravity := 9.81 * 16 * 3.5
+	if p.IsWallSliding() {
+		p.motion.Gravity = baseGravity * 0.1
+		return
+	}
+	if p.Rigidbody.Velocity.Y > 0 {
+		p.motion.Gravity = baseGravity * 1.05
 		return
 	}
 
 	slowGravityThreshold := 0.5
 	if !p.motion.IsJumping || math.Abs(p.Rigidbody.Velocity.Y) < slowGravityThreshold {
 		p.motion.Gravity = baseGravity
-		p.motion.Speed = p.Speed
+		p.motion.Speed = speed
 	}
 
 	jumpHangGravityMultiplier := 0.8
 	jumpHangSpeedMultiplier := 1.1
 
 	p.motion.Gravity = baseGravity * jumpHangGravityMultiplier
-	p.motion.Speed = p.Speed * jumpHangSpeedMultiplier
+	p.motion.Speed = speed * jumpHangSpeedMultiplier
 }
 
 func (p *Player) Update(deltaTime time.Duration, tileSize int) error {
@@ -78,26 +82,44 @@ func (p *Player) Update(deltaTime time.Duration, tileSize int) error {
 	p.wallJumpData.WallSlidingCooldown -= deltaTime
 	p.MovingCooldown -= deltaTime
 
+	if p.motion.GroundedThisFrame {
+		if p.motion.DurationSinceGrounded > 0 && p.PreviousVelocity.Y > 0 {
+			particleCount := uint(p.PreviousVelocity.Y) / 25
+			p.ParticleSystem.AddParticles(smoke.CreateEffect(p.SurfaceDetector().Center(), particleCount, 4, 0.5, 60, color.RGBA{R: 222, G: 184, B: 135, A: 255}))
+		}
+		p.motion.IsJumping = false
+		p.motion.DurationSinceGrounded = 0
+	} else {
+		p.motion.DurationSinceGrounded += deltaTime
+	}
+
+	if p.IsGrounded() && p.Rigidbody.Velocity.Y > 0 {
+		p.Rigidbody.Velocity.Y = 0
+	}
+
 	p.AdjustMotionSettings()
 
 	p.Frame += 1
 	if p.Frame%15 == 0 {
 		p.State = (p.State + 1) % 2
-		p.IsMoving = false
 	}
 
 	p.HandleInput(deltaTimeFloat)
 
 	// Gravity
-	if math.Abs(p.Rigidbody.Velocity.X) > 0 {
-		p.Rigidbody.AddForce(vector.Vector2{X: -p.Rigidbody.Velocity.X / 10, Y: 0})
-	}
 	p.Rigidbody.AddForce(vector.Vector2{X: 0, Y: p.motion.Gravity * deltaTimeFloat})
-	// p.Rigidbody.AddForce(vector.Friction(p.Rigidbody.Velocity, 0.5/tps))
+
+	// Friction
+	if p.IsGrounded() && input.IsHorizontalIdle() {
+		friction := 0.6
+		frictionAmount := math.Min(math.Abs(p.Rigidbody.Velocity.X), friction)
+		frictionForce := vector.Right().Scaled(-math.Copysign(frictionAmount, p.Rigidbody.Velocity.X))
+		p.Rigidbody.AddForce(frictionForce)
+	}
+
 	p.Rigidbody.ApplyAcceleration()
-	p.Rigidbody.ApplyVelocity()
-	p.Rigidbody.LimitHorizontalVelocity(p.motion.Speed)
-	p.Rigidbody.LimitHorizontalVelocity(20)
+	p.Rigidbody.ApplyVelocity(deltaTimeFloat)
+	// p.Rigidbody.LimitHorizontalVelocity(20)
 
 	p.PreviousVelocity = p.Rigidbody.Velocity
 
@@ -116,4 +138,14 @@ func (p Player) SurfaceDetector() box.Box {
 		Position: vector.Vector2{X: playerLeft, Y: playerBottom},
 		Size:     vector.Vector2{X: p.Rigidbody.Hitbox.Size.X, Y: 2},
 	}
+}
+
+// Check if the player touches the ground right now.
+func (p Player) IsGrounded() bool {
+	return p.motion.DurationSinceGrounded <= 0
+}
+
+// Player can jump a short time after leaving the ground.
+func (p Player) IsGroundedLate() bool {
+	return p.motion.DurationSinceGrounded <= time.Millisecond*50
 }

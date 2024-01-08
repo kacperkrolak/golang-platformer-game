@@ -33,6 +33,25 @@ func (m Map) FindVariants() {
 				continue
 			}
 
+			if tile.Type == SPIKES {
+				variant := uint8(0)
+				if x > 0 && m.Tiles[y][x-1].Type != DIRT {
+					variant |= LEFT
+				}
+				if x < len(row)-1 && m.Tiles[y][x+1].Type != DIRT {
+					variant |= RIGHT
+				}
+				if y > 0 && m.Tiles[y-1][x].Type != DIRT {
+					variant |= TOP
+				}
+				if y < len(m.Tiles)-1 && m.Tiles[y+1][x].Type != DIRT {
+					variant |= BOTTOM
+				}
+
+				m.Tiles[y][x].Variant = variant
+				continue
+
+			}
 			variant := uint8(0)
 			if x > 0 && m.Tiles[y][x-1].Type != tile.Type {
 				variant |= LEFT

@@ -13,17 +13,11 @@ type Rigidbody struct {
 
 // Checks if the rigidbody is colliding with the box and if so
 // moves it out of the box and sets the velocity to 0 in the given axis.
-func (rb *Rigidbody) MoveOutOfBox(b box.Box) {
+func (rb *Rigidbody) MoveOutOfBox(b box.Box) vector.Vector2 {
 	displacement := b.DisplacementVector(rb.Hitbox)
-	if displacement.X != 0 {
-		rb.Velocity.X = 0
-		rb.Hitbox.Position.Add(displacement)
-	}
+	rb.Hitbox.Position.Add(displacement)
 
-	if displacement.Y != 0 {
-		rb.Velocity.Y = 0
-		rb.Hitbox.Position.Add(displacement)
-	}
+	return displacement
 }
 
 func (rb *Rigidbody) CollidesWith(b box.Box) bool {
@@ -40,8 +34,8 @@ func (rb *Rigidbody) ApplyAcceleration() {
 	rb.Acceleration.Y = 0
 }
 
-func (rb *Rigidbody) ApplyVelocity() {
-	rb.Hitbox.Position.Add(rb.Velocity)
+func (rb *Rigidbody) ApplyVelocity(deltaTime float64) {
+	rb.Hitbox.Position.Add(rb.Velocity.Scaled(deltaTime))
 }
 
 func (rb *Rigidbody) LimitHorizontalVelocity(maxVelocity float64) {
