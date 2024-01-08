@@ -1,18 +1,22 @@
 package gamemap
 
 import (
+	"kacperkrolak/golang-platformer-game/pkg/gamemap/tile"
+	tilemock "kacperkrolak/golang-platformer-game/pkg/gamemap/tile/mock"
 	"kacperkrolak/golang-platformer-game/pkg/physics/box"
 	"kacperkrolak/golang-platformer-game/pkg/physics/vector"
 	"reflect"
 	"testing"
+
+	"github.com/stretchr/testify/mock"
 )
 
 func TestMap_CreateHitboxes(t *testing.T) {
 	m := Map{
-		Tiles: [][]Tile{
-			{{Type: EMPTY}, {Type: EMPTY}, {Type: EMPTY}},
-			{{Type: DIRT}, {Type: DIRT}, {Type: DIRT}},
-			{{Type: EMPTY}, {Type: DIRT}, {Type: EMPTY}},
+		Tiles: [][]tile.Tile{
+			{tilemock.NewEmptyTile(), tilemock.NewEmptyTile(), tilemock.NewEmptyTile()},
+			{tilemock.NewCollidableTile(), tilemock.NewCollidableTile(), tilemock.NewCollidableTile()},
+			{tilemock.NewEmptyTile(), tilemock.NewCollidableTile(), tilemock.NewEmptyTile()},
 		},
 	}
 
@@ -27,52 +31,55 @@ func TestMap_CreateHitboxes(t *testing.T) {
 
 	for i, hitboxes := range expectedHitboxes {
 		for j, hitbox := range hitboxes {
-			if m.Tiles[i][j].Hitbox != hitbox {
-				t.Errorf("Expected hitbox %v, got %v", hitbox, m.Tiles[i][j].Hitbox)
+			if m.Tiles[i][j].Hitbox() != hitbox {
+				t.Errorf("Expected hitbox %v, got %v", hitbox, m.Tiles[i][j].Hitbox())
 			}
 		}
 	}
 }
 
 func TestMap_FindVariants(t *testing.T) {
+	tiles := [][]*tilemock.MockTile{
+		{tilemock.NewEmptyTile(), tilemock.NewEmptyTile(), tilemock.NewEmptyTile()},
+		{tilemock.NewCollidableTile(), tilemock.NewCollidableTile(), tilemock.NewCollidableTile()},
+		{tilemock.NewEmptyTile(), tilemock.NewCollidableTile(), tilemock.NewEmptyTile()},
+	}
+
+	var mapTiles [][]tile.Tile
+	for _, row := range tiles {
+		var mapRow []tile.Tile
+		for i := 0; i < len(row); i++ {
+			row[i].On("UpdateVariant", mock.Anything).Return()
+			mapRow = append(mapRow, row[i])
+		}
+		mapTiles = append(mapTiles, mapRow)
+	}
+
 	m := Map{
-		Tiles: [][]Tile{
-			{{Type: EMPTY}, {Type: EMPTY}, {Type: EMPTY}},
-			{{Type: DIRT}, {Type: DIRT}, {Type: DIRT}},
-			{{Type: EMPTY}, {Type: DIRT}, {Type: EMPTY}},
-		},
+		Tiles: mapTiles,
 	}
 
 	m.FindVariants()
 
-	// Empty tiles should have no variants.
-	expectedTiles := [][]uint8{
-		{0, 0, 0},
-		{TOP_BOTTOM, TOP, TOP_BOTTOM},
-		{0, LEFT_RIGHT, 0},
-	}
-
-	for i, row := range expectedTiles {
-		for j, variant := range row {
-			if m.Tiles[i][j].Variant != variant {
-				t.Errorf("Expected tile %d:%d to have variant %+v, got %+v", j, i, variant, m.Tiles[i][j].Variant)
-			}
+	for _, row := range tiles {
+		for i := 0; i < len(row); i++ {
+			row[i].AssertExpectations(t)
 		}
 	}
 }
 func TestMakeMap(t *testing.T) {
-	tiles := [][]Tile{
-		{{Type: EMPTY}, {Type: EMPTY}, {Type: EMPTY}},
-		{{Type: DIRT}, {Type: DIRT}, {Type: DIRT}},
-		{{Type: EMPTY}, {Type: DIRT}, {Type: EMPTY}},
+	tiles := [][]tile.Tile{
+		{tilemock.NewEmptyTile(), tilemock.NewEmptyTile(), tilemock.NewEmptyTile()},
+		{tilemock.NewCollidableTile(), tilemock.NewCollidableTile(), tilemock.NewCollidableTile()},
+		{tilemock.NewEmptyTile(), tilemock.NewCollidableTile(), tilemock.NewEmptyTile()},
 	}
 	tileSize := 10
 
 	expectedMap := Map{
-		Tiles: [][]Tile{
-			{{Type: EMPTY}, {Type: EMPTY}, {Type: EMPTY}},
-			{{Type: DIRT}, {Type: DIRT}, {Type: DIRT}},
-			{{Type: EMPTY}, {Type: DIRT}, {Type: EMPTY}},
+		Tiles: [][]tile.Tile{
+			{tilemock.NewEmptyTile(), tilemock.NewEmptyTile(), tilemock.NewEmptyTile()},
+			{tilemock.NewCollidableTile(), tilemock.NewCollidableTile(), tilemock.NewCollidableTile()},
+			{tilemock.NewEmptyTile(), tilemock.NewCollidableTile(), tilemock.NewEmptyTile()},
 		},
 	}
 

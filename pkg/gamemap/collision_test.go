@@ -1,6 +1,8 @@
 package gamemap
 
 import (
+	"kacperkrolak/golang-platformer-game/pkg/gamemap/tile"
+	"kacperkrolak/golang-platformer-game/pkg/gamemap/tile/mock"
 	"kacperkrolak/golang-platformer-game/pkg/physics/box"
 	"kacperkrolak/golang-platformer-game/pkg/physics/vector"
 	"testing"
@@ -16,10 +18,10 @@ func TestCollidesWith(t *testing.T) {
 		{
 			name: "should return true when the box collides with collidable tiles",
 			m: Map{
-				Tiles: [][]Tile{
-					{{Type: EMPTY}, {Type: DIRT}, {Type: EMPTY}},
-					{{Type: DIRT}, {Type: DIRT}, {Type: DIRT}},
-					{{Type: EMPTY}, {Type: DIRT}, {Type: EMPTY}},
+				Tiles: [][]tile.Tile{
+					{mock.NewEmptyTile(), mock.NewCollidableTile(), mock.NewEmptyTile()},
+					{mock.NewCollidableTile(), mock.NewCollidableTile(), mock.NewCollidableTile()},
+					{mock.NewEmptyTile(), mock.NewCollidableTile(), mock.NewEmptyTile()},
 				},
 				TileSize: 10,
 			},
@@ -32,10 +34,10 @@ func TestCollidesWith(t *testing.T) {
 		{
 			name: "should return false when the box does not collide with any collidable tiles",
 			m: Map{
-				Tiles: [][]Tile{
-					{{Type: EMPTY}, {Type: EMPTY}, {Type: EMPTY}},
-					{{Type: EMPTY}, {Type: EMPTY}, {Type: EMPTY}},
-					{{Type: EMPTY}, {Type: EMPTY}, {Type: EMPTY}},
+				Tiles: [][]tile.Tile{
+					{mock.NewEmptyTile(), mock.NewEmptyTile(), mock.NewEmptyTile()},
+					{mock.NewEmptyTile(), mock.NewEmptyTile(), mock.NewEmptyTile()},
+					{mock.NewEmptyTile(), mock.NewEmptyTile(), mock.NewEmptyTile()},
 				},
 				TileSize: 10,
 			},
@@ -48,10 +50,10 @@ func TestCollidesWith(t *testing.T) {
 		{
 			name: "should return true when the box overlaps multiple collidable tiles",
 			m: Map{
-				Tiles: [][]Tile{
-					{{Type: DIRT}, {Type: DIRT}, {Type: DIRT}},
-					{{Type: DIRT}, {Type: DIRT}, {Type: DIRT}},
-					{{Type: DIRT}, {Type: DIRT}, {Type: DIRT}},
+				Tiles: [][]tile.Tile{
+					{mock.NewCollidableTile(), mock.NewCollidableTile(), mock.NewCollidableTile()},
+					{mock.NewCollidableTile(), mock.NewCollidableTile(), mock.NewCollidableTile()},
+					{mock.NewCollidableTile(), mock.NewCollidableTile(), mock.NewCollidableTile()},
 				},
 				TileSize: 10,
 			},
@@ -64,10 +66,10 @@ func TestCollidesWith(t *testing.T) {
 		{
 			name: "should return false when the box is outside of the map",
 			m: Map{
-				Tiles: [][]Tile{
-					{{Type: EMPTY}, {Type: EMPTY}, {Type: EMPTY}},
-					{{Type: EMPTY}, {Type: EMPTY}, {Type: EMPTY}},
-					{{Type: EMPTY}, {Type: EMPTY}, {Type: EMPTY}},
+				Tiles: [][]tile.Tile{
+					{mock.NewEmptyTile(), mock.NewEmptyTile(), mock.NewEmptyTile()},
+					{mock.NewEmptyTile(), mock.NewEmptyTile(), mock.NewEmptyTile()},
+					{mock.NewEmptyTile(), mock.NewEmptyTile(), mock.NewEmptyTile()},
 				},
 				TileSize: 10,
 			},

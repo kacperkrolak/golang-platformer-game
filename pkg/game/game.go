@@ -97,21 +97,27 @@ func (g *Game) Update() error {
 
 	g.player.Update(deltaTime, g.tileSize)
 
-	for _, row := range g.gameMap.Tiles {
-		for _, t := range row {
+	for i, row := range g.gameMap.Tiles {
+		for j, t := range row {
 			if !t.IsCollidable() {
 				continue
 			}
 
-			if t.Type == gamemap.SPIKES {
+			if t.IsDeadly() {
 				// Make the game more fair by allowing player to touch 1 pixel of spikes
-				displacementVector := g.player.Rigidbody.Hitbox.DisplacementVector(t.Hitbox)
+				displacementVector := g.player.Rigidbody.Hitbox.DisplacementVector(t.Hitbox())
+				log.Print("Length: ", displacementVector.Length())
 				if displacementVector.Length() > 2 {
 					g.player.Rigidbody.Hitbox.Position = vector.Vector2{X: 0, Y: 0}
 				}
 				continue
 			}
-			dispacement := g.player.Rigidbody.MoveOutOfBox(t.Hitbox)
+
+			hitbox := box.Box{
+				Position: vector.Vector2{X: float64(j * g.tileSize), Y: float64(i * g.tileSize)},
+				Size:     vector.Vector2{X: float64(g.tileSize), Y: float64(g.tileSize)},
+			}
+			dispacement := g.player.Rigidbody.MoveOutOfBox(hitbox)
 			g.player.OnBumping(dispacement)
 		}
 	}
@@ -137,9 +143,10 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	screen.Fill(background)
 
 	offsetX, offsetY := g.getScreenPosition(0, 0)
-	g.gameMap.Draw(screen, offsetX, offsetY, g.tilesImage, g.tileSize)
+	cameraOffset := vector.Vector2{X: offsetX, Y: offsetY}
+	g.gameMap.Draw(screen, cameraOffset, g.tilesImage, g.tileSize)
 	g.player.Draw(screen, offsetX, offsetY, g.characterImage, g.tileSize)
-	g.particleSystem.Draw(screen, vector.Vector2{X: offsetX, Y: offsetY})
+	g.particleSystem.Draw(screen, cameraOffset)
 	ebitenutil.DebugPrint(screen, fmt.Sprintf("TPS: %f, FPS: %f", ebiten.ActualTPS(), ebiten.ActualFPS()))
 }
 

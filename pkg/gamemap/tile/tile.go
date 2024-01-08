@@ -1,13 +1,10 @@
-package gamemap
+package tile
 
-import "kacperkrolak/golang-platformer-game/pkg/physics/box"
+import (
+	"kacperkrolak/golang-platformer-game/pkg/physics/box"
+	"kacperkrolak/golang-platformer-game/pkg/physics/vector"
 
-type TileType rune
-
-const (
-	EMPTY  TileType = '_'
-	DIRT   TileType = 'x'
-	SPIKES TileType = '^'
+	"github.com/hajimehoshi/ebiten/v2"
 )
 
 // Flags to indecate whether there different type of tile on the left, right, top or bottom.
@@ -30,12 +27,12 @@ const (
 	BOTTOM_LEFT_RIGHT = BOTTOM | LEFT | RIGHT
 )
 
-type Tile struct {
-	Type    TileType
-	Variant uint8
-	Hitbox  box.Box
-}
-
-func (t Tile) IsCollidable() bool {
-	return t.Type != EMPTY
+type Tile interface {
+	IsCollidable() bool
+	IsSolid() bool
+	UpdateVariant([4]Tile) // Neighbours: left, top, right, bottom
+	Draw(*ebiten.Image, vector.Vector2, *ebiten.Image, int)
+	Hitbox() box.Box
+	SetHitbox(box.Box)
+	IsDeadly() bool
 }

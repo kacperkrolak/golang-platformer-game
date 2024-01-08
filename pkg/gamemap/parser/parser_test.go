@@ -1,18 +1,20 @@
 package parser
 
 import (
-	"kacperkrolak/golang-platformer-game/pkg/gamemap"
+	"kacperkrolak/golang-platformer-game/pkg/gamemap/tile"
+	"kacperkrolak/golang-platformer-game/pkg/gamemap/tile/empty"
+	"kacperkrolak/golang-platformer-game/pkg/gamemap/tile/ground"
+	"kacperkrolak/golang-platformer-game/pkg/gamemap/tile/spikes"
+	"reflect"
 	"strings"
 	"testing"
-
-	"github.com/google/go-cmp/cmp"
 )
 
 func TestParser_LoadTiles(t *testing.T) {
 	testCases := []struct {
 		name    string
 		input   string
-		wanted  [][]gamemap.Tile
+		wanted  [][]tile.Tile
 		wantErr bool
 	}{
 		{
@@ -26,30 +28,30 @@ func TestParser_LoadTiles(t *testing.T) {
 			input: `
 ---
 _____
-xx___
+x^___
 xxxxx
 `,
-			wanted: [][]gamemap.Tile{
+			wanted: [][]tile.Tile{
 				{
-					gamemap.Tile{Type: gamemap.EMPTY},
-					gamemap.Tile{Type: gamemap.EMPTY},
-					gamemap.Tile{Type: gamemap.EMPTY},
-					gamemap.Tile{Type: gamemap.EMPTY},
-					gamemap.Tile{Type: gamemap.EMPTY},
+					&empty.Tile{},
+					&empty.Tile{},
+					&empty.Tile{},
+					&empty.Tile{},
+					&empty.Tile{},
 				},
 				{
-					gamemap.Tile{Type: gamemap.DIRT},
-					gamemap.Tile{Type: gamemap.DIRT},
-					gamemap.Tile{Type: gamemap.EMPTY},
-					gamemap.Tile{Type: gamemap.EMPTY},
-					gamemap.Tile{Type: gamemap.EMPTY},
+					&ground.Tile{},
+					&spikes.Tile{},
+					&empty.Tile{},
+					&empty.Tile{},
+					&empty.Tile{},
 				},
 				{
-					gamemap.Tile{Type: gamemap.DIRT},
-					gamemap.Tile{Type: gamemap.DIRT},
-					gamemap.Tile{Type: gamemap.DIRT},
-					gamemap.Tile{Type: gamemap.DIRT},
-					gamemap.Tile{Type: gamemap.DIRT},
+					&ground.Tile{},
+					&ground.Tile{},
+					&ground.Tile{},
+					&ground.Tile{},
+					&ground.Tile{},
 				},
 			},
 			wantErr: false,
@@ -60,14 +62,17 @@ xxxxx
 		t.Run(testCase.name, func(t *testing.T) {
 			parser := MapDataParser{}
 			got, err := parser.LoadTiles(strings.NewReader(testCase.input))
-
 			if (err != nil) != testCase.wantErr {
 				t.Errorf("Load() error = %v, wantErr %v", err, testCase.wantErr)
 				return
 			}
 
-			if !testCase.wantErr && !cmp.Equal(got, testCase.wanted) {
-				t.Errorf("Load() got = %v, want %v", got, testCase.wanted)
+			for y, row := range got {
+				for x, tile := range row {
+					if reflect.TypeOf(tile) != reflect.TypeOf(testCase.wanted[y][x]) {
+						t.Errorf("Load() expected tile type %v at position %d:%d, got %v", reflect.TypeOf(testCase.wanted[y][x]), x, y, reflect.TypeOf(tile))
+					}
+				}
 			}
 		})
 	}
