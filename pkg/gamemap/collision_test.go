@@ -84,7 +84,7 @@ func TestCollidesWith(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			actual := tc.m.CollidesWith(tc.box)
-			if actual != tc.expected {
+			if (len(actual) > 0) != tc.expected {
 				t.Errorf("CollidesWith() = %v, expected %v", actual, tc.expected)
 			}
 		})

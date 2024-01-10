@@ -16,6 +16,8 @@ The `map` section contains the actual map data. It must be composed of lines wit
 
 - `_` (underscore): empty space
 - `x`: ground
+- `^`: spikes
+- `s`: spring
 
 ## Example
 

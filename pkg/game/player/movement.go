@@ -16,7 +16,7 @@ const DECCELERATION_RATE = 0.05
 
 // Don't make it too small, as it's multiplied by ACCELERATION_RATE or DECCELERATION_RATE.
 const ACCELERATION_AIR_RATE = 1
-const DECCELERATION_RATE_AIR = 0.1
+const DECCELERATION_RATE_AIR = 0.5
 
 func (p *Player) HandleInput(deltaTime float64) {
 	inputDirection := input.GetHorizontal()

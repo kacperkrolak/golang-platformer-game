@@ -1,6 +1,7 @@
-package empty
+package spring
 
 import (
+	"image"
 	"kacperkrolak/golang-platformer-game/pkg/gamemap/tile"
 	"kacperkrolak/golang-platformer-game/pkg/physics/box"
 	"kacperkrolak/golang-platformer-game/pkg/physics/rigidbody"
@@ -10,22 +11,30 @@ import (
 )
 
 type Tile struct {
-	variant uint8
-	hitbox  box.Box
+	hitbox box.Box
 }
 
 func (t Tile) IsCollidable() bool {
-	return false
+	return true
 }
 
 func (t Tile) IsSolid() bool {
-	return false
+	return true
+}
+
+var TilePosition vector.Vector2 = vector.Vector2{X: 0, Y: 90}
+
+func (t Tile) Draw(screen *ebiten.Image, screenPosition vector.Vector2, tileSheet *ebiten.Image, tileSize int) {
+	op := &ebiten.DrawImageOptions{}
+	op.GeoM.Translate(screenPosition.X, screenPosition.Y)
+
+	tilePos := TilePosition
+	tileImg := tileSheet.SubImage(image.Rect(int(tilePos.X), int(tilePos.Y), int(tilePos.X)+tileSize, int(tilePos.Y)+tileSize)).(*ebiten.Image)
+
+	screen.DrawImage(tileImg, op)
 }
 
 func (t *Tile) UpdateVariant(neighbours [4]tile.Tile) {
-}
-
-func (t Tile) Draw(screen *ebiten.Image, screenPosition vector.Vector2, tileSheet *ebiten.Image, tileSize int) {
 }
 
 func (t Tile) Hitbox() box.Box {
@@ -41,4 +50,14 @@ func (t Tile) IsDeadly() bool {
 }
 
 func (t Tile) OnCollision(rigidbody *rigidbody.Rigidbody) {
+	if rigidbody.Velocity.Y < -0 {
+		return
+	}
+
+	pushStrength := rigidbody.Velocity.Y
+	if pushStrength > 500 {
+		pushStrength = 500
+	}
+
+	rigidbody.AddForce(vector.Up().Scaled(pushStrength))
 }

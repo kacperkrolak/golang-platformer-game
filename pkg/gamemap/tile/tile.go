@@ -2,6 +2,7 @@ package tile
 
 import (
 	"kacperkrolak/golang-platformer-game/pkg/physics/box"
+	"kacperkrolak/golang-platformer-game/pkg/physics/rigidbody"
 	"kacperkrolak/golang-platformer-game/pkg/physics/vector"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -35,4 +36,5 @@ type Tile interface {
 	Hitbox() box.Box
 	SetHitbox(box.Box)
 	IsDeadly() bool
+	OnCollision(*rigidbody.Rigidbody)
 }

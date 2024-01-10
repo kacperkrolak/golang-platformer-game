@@ -8,6 +8,7 @@ import (
 	"kacperkrolak/golang-platformer-game/pkg/gamemap/tile/empty"
 	"kacperkrolak/golang-platformer-game/pkg/gamemap/tile/ground"
 	"kacperkrolak/golang-platformer-game/pkg/gamemap/tile/spikes"
+	"kacperkrolak/golang-platformer-game/pkg/gamemap/tile/spring"
 )
 
 type MapDataParser struct {
@@ -57,6 +58,9 @@ func (parser MapDataParser) readMapData(scanner *bufio.Scanner) ([][]tile.Tile, 
 			}
 			if char == '^' {
 				row = append(row, &spikes.Tile{})
+			}
+			if char == 's' {
+				row = append(row, &spring.Tile{})
 			}
 		}
 

@@ -4,6 +4,7 @@ import (
 	"image"
 	"kacperkrolak/golang-platformer-game/pkg/gamemap/tile"
 	"kacperkrolak/golang-platformer-game/pkg/physics/box"
+	"kacperkrolak/golang-platformer-game/pkg/physics/rigidbody"
 	"kacperkrolak/golang-platformer-game/pkg/physics/vector"
 	"math"
 
@@ -85,4 +86,7 @@ func (t *Tile) SetHitbox(hitbox box.Box) {
 
 func (t Tile) IsDeadly() bool {
 	return true
+}
+
+func (t Tile) OnCollision(rigidbody *rigidbody.Rigidbody) {
 }

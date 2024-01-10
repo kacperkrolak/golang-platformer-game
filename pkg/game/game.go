@@ -83,13 +83,20 @@ func (g *Game) Update() error {
 	tps := float64(60)
 	deltaTime := time.Duration(1 / tps * float64(time.Second))
 
-	if g.gameMap.CollidesWith(g.player.SurfaceDetector()) {
-		g.player.UpdateGroundedState(true)
+	if collidedWith := g.gameMap.CollidesWith(g.player.SurfaceDetector()); len(collidedWith) > 0 {
+		groundedStatus := false
+		for _, t := range collidedWith {
+			if t.IsSolid() {
+				groundedStatus = true
+			}
+			t.OnCollision(&g.player.Rigidbody)
+		}
+		g.player.UpdateGroundedState(groundedStatus)
 	} else {
 		g.player.UpdateGroundedState(false)
 	}
 
-	if g.gameMap.CollidesWith(g.player.WallDetector()) {
+	if collidedWith := g.gameMap.CollidesWith(g.player.WallDetector()); len(collidedWith) > 0 {
 		g.player.UpdateWallSlidingState(true)
 	} else {
 		g.player.UpdateWallSlidingState(false)
@@ -97,6 +104,7 @@ func (g *Game) Update() error {
 
 	g.player.Update(deltaTime, g.tileSize)
 
+	displacementSum := vector.Vector2{X: 0, Y: 0}
 	for i, row := range g.gameMap.Tiles {
 		for j, t := range row {
 			if !t.IsCollidable() {
@@ -106,7 +114,6 @@ func (g *Game) Update() error {
 			if t.IsDeadly() {
 				// Make the game more fair by allowing player to touch 1 pixel of spikes
 				displacementVector := g.player.Rigidbody.Hitbox.DisplacementVector(t.Hitbox())
-				log.Print("Length: ", displacementVector.Length())
 				if displacementVector.Length() > 2 {
 					g.player.Rigidbody.Hitbox.Position = vector.Vector2{X: 0, Y: 0}
 				}
@@ -117,10 +124,14 @@ func (g *Game) Update() error {
 				Position: vector.Vector2{X: float64(j * g.tileSize), Y: float64(i * g.tileSize)},
 				Size:     vector.Vector2{X: float64(g.tileSize), Y: float64(g.tileSize)},
 			}
-			dispacement := g.player.Rigidbody.MoveOutOfBox(hitbox)
-			g.player.OnBumping(dispacement)
+			displacement := hitbox.DisplacementVector(g.player.Rigidbody.Hitbox)
+			displacementSum.Add(displacement)
 		}
 	}
+
+	g.player.OnBumping(displacementSum)
+	g.player.Rigidbody.Hitbox.Position.Add(displacementSum)
+	// g.player.Rigidbody.ApplyAcceleration()
 
 	g.particleSystem.Update()
 

@@ -4,6 +4,7 @@ import (
 	"image"
 	"kacperkrolak/golang-platformer-game/pkg/gamemap/tile"
 	"kacperkrolak/golang-platformer-game/pkg/physics/box"
+	"kacperkrolak/golang-platformer-game/pkg/physics/rigidbody"
 	"kacperkrolak/golang-platformer-game/pkg/physics/vector"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -24,11 +25,11 @@ func (t Tile) IsSolid() bool {
 
 var TilePositions map[uint8]vector.Vector2 = map[uint8]vector.Vector2{
 	tile.TOP:               {X: 176, Y: 0},
-	tile.BOTTOM:            {X: 208, Y: 0},
+	tile.BOTTOM:            {X: 176, Y: 16},
 	tile.TOP_BOTTOM:        {X: 176, Y: 0},
 	tile.LEFT:              {X: 160, Y: 16},
 	tile.RIGHT:             {X: 192, Y: 16},
-	tile.LEFT_RIGHT:        {X: 208, Y: 0},
+	tile.LEFT_RIGHT:        {X: 176, Y: 16},
 	tile.SURROUNDED:        {X: 208, Y: 0},
 	tile.ALONE:             {X: 176, Y: 16},
 	tile.LEFT_TOP:          {X: 160, Y: 0},
@@ -36,7 +37,7 @@ var TilePositions map[uint8]vector.Vector2 = map[uint8]vector.Vector2{
 	tile.RIGHT_TOP:         {X: 192, Y: 0},
 	tile.RIGHT_BOTTOM:      {X: 192, Y: 16},
 	tile.LEFT_TOP_RIGHT:    {X: 208, Y: 0},
-	tile.BOTTOM_LEFT_RIGHT: {X: 208, Y: 0},
+	tile.BOTTOM_LEFT_RIGHT: {X: 176, Y: 16},
 	tile.BOTTOM_LEFT_TOP:   {X: 160, Y: 0},
 	tile.BOTTOM_RIGHT_TOP:  {X: 192, Y: 0},
 }
@@ -56,7 +57,7 @@ func (t *Tile) UpdateVariant(neighbours [4]tile.Tile) {
 	if neighbours[0] != nil && !neighbours[0].IsSolid() {
 		variant |= tile.LEFT
 	}
-	if neighbours[1] != nil && !neighbours[1].IsSolid() {
+	if neighbours[1] == nil || !neighbours[1].IsSolid() {
 		variant |= tile.TOP
 	}
 	if neighbours[2] != nil && !neighbours[2].IsSolid() {
@@ -79,4 +80,7 @@ func (t *Tile) SetHitbox(hitbox box.Box) {
 
 func (t Tile) IsDeadly() bool {
 	return false
+}
+
+func (t Tile) OnCollision(rigidbody *rigidbody.Rigidbody) {
 }

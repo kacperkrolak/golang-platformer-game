@@ -3,6 +3,7 @@ package mock
 import (
 	"kacperkrolak/golang-platformer-game/pkg/gamemap/tile"
 	"kacperkrolak/golang-platformer-game/pkg/physics/box"
+	"kacperkrolak/golang-platformer-game/pkg/physics/rigidbody"
 	"kacperkrolak/golang-platformer-game/pkg/physics/vector"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -55,4 +56,7 @@ func (t *MockTile) SetHitbox(hitbox box.Box) {
 
 func (t MockTile) IsDeadly() bool {
 	return false
+}
+
+func (t MockTile) OnCollision(rigidbody *rigidbody.Rigidbody) {
 }
