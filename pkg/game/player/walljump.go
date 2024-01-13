@@ -18,22 +18,24 @@ type wallJumpData struct {
 
 func (p *Player) WallJump() {
 	p.wallJumpData.IsWallJumping = true
+	p.FacingRight = !p.wallJumpData.WallJumpRight
 	p.ParticleSystem.AddParticles(smoke.CreateEffect(p.WallDetector().Center(), 5, 7, 0.75, 60, color.RGBA{R: 255, G: 255, B: 255, A: 255}))
 	JUMP_FORCE := 250.0
 
 	// Horizontal force must be much larger to jump the same distance horizontally
 	// as vertically.
-	jumpVector := vector.Vector2{X: 0.7, Y: -0.8}
+	p.Rigidbody.Velocity.X = 0
+	jumpVector := vector.Vector2{X: 0.5, Y: -0.8}
+	if p.Rigidbody.Velocity.Y > 0 {
+		p.Rigidbody.Velocity.Y = 0
+		jumpVector = vector.Vector2{X: 0.5, Y: -0.9}
+	}
+
 	if p.wallJumpData.WallJumpRight {
 		jumpVector.X = -jumpVector.X
 	}
 
 	jumpForce := jumpVector.Scaled(JUMP_FORCE)
-
-	// Counteract gravity.
-	if p.Rigidbody.Velocity.Y > 0 {
-		jumpForce.Add(vector.Up().Scaled(p.Rigidbody.Velocity.Y))
-	}
 
 	p.Rigidbody.AddForce(jumpForce)
 }
@@ -84,5 +86,5 @@ func (p Player) IsWalled() bool {
 }
 
 func (p Player) IsWallSliding() bool {
-	return p.IsWalled() && p.Rigidbody.Velocity.Y > 0
+	return p.IsWalled() && p.Rigidbody.Velocity.Y >= 0
 }

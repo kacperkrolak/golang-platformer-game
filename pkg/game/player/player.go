@@ -45,34 +45,30 @@ func (p *Player) UpdateGroundedState(grounded bool) {
 // hanging in the air for a moment.
 func (p *Player) AdjustMotionSettings() {
 	speed := p.Speed
+	p.motion.Gravity = 9.81 * 16 * 3
+	p.motion.movementSlowdown = 1
 	if p.MovingCooldown > 0 {
 		p.motion.movementSlowdown = 0.1
-	} else {
-		p.motion.movementSlowdown = 1
 	}
 
-	// Gravity * tileSize * multiplier
-	baseGravity := 9.81 * 16 * 3.5
 	if p.IsWallSliding() {
-		p.motion.Gravity = baseGravity * 0.1
-		return
-	}
-	if p.Rigidbody.Velocity.Y > 0 {
-		p.motion.Gravity = baseGravity * 1.05
+		p.motion.Gravity = p.motion.Gravity * 0.1
 		return
 	}
 
+	// If the player is falling, increase gravity to make the fall faster.
+	if p.Rigidbody.Velocity.Y > 0 {
+		p.motion.Gravity = p.motion.Gravity * 1.02
+	}
+
+	// When player is at the highest point of the jump, reduce gravity and increase speed.
 	slowGravityThreshold := 0.5
 	if !p.motion.IsJumping || math.Abs(p.Rigidbody.Velocity.Y) < slowGravityThreshold {
-		p.motion.Gravity = baseGravity
-		p.motion.Speed = speed
+		jumpHangGravityMultiplier := 0.8
+		jumpHangSpeedMultiplier := 1.1
+		p.motion.Gravity = p.motion.Gravity * jumpHangGravityMultiplier
+		p.motion.Speed = speed * jumpHangSpeedMultiplier
 	}
-
-	jumpHangGravityMultiplier := 0.8
-	jumpHangSpeedMultiplier := 1.1
-
-	p.motion.Gravity = baseGravity * jumpHangGravityMultiplier
-	p.motion.Speed = speed * jumpHangSpeedMultiplier
 }
 
 func (p *Player) Update(deltaTime time.Duration, tileSize int) error {
@@ -119,7 +115,6 @@ func (p *Player) Update(deltaTime time.Duration, tileSize int) error {
 
 	p.Rigidbody.ApplyAcceleration()
 	p.Rigidbody.ApplyVelocity(deltaTimeFloat)
-	// p.Rigidbody.LimitHorizontalVelocity(20)
 
 	p.PreviousVelocity = p.Rigidbody.Velocity
 
@@ -135,8 +130,8 @@ func (p Player) SurfaceDetector() box.Box {
 	playerLeft := p.Rigidbody.Hitbox.Left()
 
 	return box.Box{
-		Position: vector.Vector2{X: playerLeft, Y: playerBottom},
-		Size:     vector.Vector2{X: p.Rigidbody.Hitbox.Size.X, Y: 2},
+		Position: vector.Vector2{X: playerLeft + 2, Y: playerBottom},
+		Size:     vector.Vector2{X: p.Rigidbody.Hitbox.Size.X - 4, Y: 2},
 	}
 }
 
