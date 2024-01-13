@@ -2,10 +2,9 @@ package spring
 
 import (
 	"image"
-	"kacperkrolak/golang-platformer-game/pkg/gamemap/tile"
 	"kacperkrolak/golang-platformer-game/pkg/physics/box"
-	"kacperkrolak/golang-platformer-game/pkg/physics/rigidbody"
 	"kacperkrolak/golang-platformer-game/pkg/physics/vector"
+	"kacperkrolak/golang-platformer-game/pkg/world/tilemap/tile"
 
 	"github.com/hajimehoshi/ebiten/v2"
 )
@@ -37,27 +36,6 @@ func (t Tile) Draw(screen *ebiten.Image, screenPosition vector.Vector2, tileShee
 func (t *Tile) UpdateVariant(neighbours [4]tile.Tile) {
 }
 
-func (t Tile) Hitbox() box.Box {
-	return t.hitbox
-}
-
-func (t *Tile) SetHitbox(hitbox box.Box) {
-	t.hitbox = hitbox
-}
-
-func (t Tile) IsDeadly() bool {
-	return false
-}
-
-func (t Tile) OnCollision(rigidbody *rigidbody.Rigidbody) {
-	if rigidbody.Velocity.Y < -0 {
-		return
-	}
-
-	pushStrength := rigidbody.Velocity.Y
-	if pushStrength > 500 {
-		pushStrength = 500
-	}
-
-	rigidbody.AddForce(vector.Up().Scaled(pushStrength))
+func (t Tile) GetGroup() string {
+	return "solid"
 }

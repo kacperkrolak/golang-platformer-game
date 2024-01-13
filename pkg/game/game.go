@@ -5,11 +5,12 @@ import (
 	"image/color"
 	"kacperkrolak/golang-platformer-game/pkg/game/camera"
 	"kacperkrolak/golang-platformer-game/pkg/game/player"
-	"kacperkrolak/golang-platformer-game/pkg/gamemap"
 	"kacperkrolak/golang-platformer-game/pkg/physics/box"
 	"kacperkrolak/golang-platformer-game/pkg/physics/rigidbody"
 	"kacperkrolak/golang-platformer-game/pkg/physics/vector"
 	"kacperkrolak/golang-platformer-game/pkg/visuals/particle"
+	"kacperkrolak/golang-platformer-game/pkg/world/gamemap"
+	"kacperkrolak/golang-platformer-game/pkg/world/tilemap"
 	"log"
 	"time"
 
@@ -24,6 +25,7 @@ const (
 
 type Game struct {
 	gameMap        gamemap.Map
+	background     tilemap.Map
 	tilesImage     *ebiten.Image
 	characterImage *ebiten.Image
 	tileSize       int
@@ -35,7 +37,7 @@ type Game struct {
 const TileSize = 16
 
 func MakeGame(mapFile string, textureFile string, characterFile string) Game {
-	gameMap, err := loadGameMap(mapFile, TileSize)
+	gameMap, tileMap, err := loadWorldMap(mapFile, TileSize)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -64,6 +66,7 @@ func MakeGame(mapFile string, textureFile string, characterFile string) Game {
 
 	return Game{
 		gameMap:        gameMap,
+		background:     tileMap,
 		tilesImage:     tilesImage,
 		characterImage: characterImage,
 		tileSize:       TileSize,
@@ -147,6 +150,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 
 	offsetX, offsetY := g.getScreenPosition(0, 0)
 	cameraOffset := vector.Vector2{X: offsetX, Y: offsetY}
+	g.background.Draw(screen, cameraOffset, g.tilesImage, g.tileSize)
 	g.gameMap.Draw(screen, cameraOffset, g.tilesImage, g.tileSize)
 	g.player.Draw(screen, offsetX, offsetY, g.characterImage, g.tileSize)
 	g.particleSystem.Draw(screen, cameraOffset)

@@ -2,29 +2,31 @@ package game
 
 import (
 	"image"
-	"kacperkrolak/golang-platformer-game/pkg/gamemap"
-	"kacperkrolak/golang-platformer-game/pkg/gamemap/parser"
+	"kacperkrolak/golang-platformer-game/pkg/world/gamemap"
+	"kacperkrolak/golang-platformer-game/pkg/world/parser"
+	"kacperkrolak/golang-platformer-game/pkg/world/tilemap"
 	"os"
 
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
-func loadGameMap(mapFile string, tileSize int) (gamemap.Map, error) {
+func loadWorldMap(mapFile string, tileSize int) (gamemap.Map, tilemap.Map, error) {
 	file, err := os.Open(mapFile)
 	if err != nil {
-		return gamemap.Map{}, err
+		return gamemap.Map{}, tilemap.Map{}, err
 	}
 	defer file.Close()
 
-	parser := parser.MapDataParser{}
-	tiles, err := parser.LoadTiles(file)
+	parser := parser.Parser{}
+	blocks, tiles, err := parser.Load(file)
 	if err != nil {
-		return gamemap.Map{}, err
+		return gamemap.Map{}, tilemap.Map{}, err
 	}
 
-	gameMap := gamemap.MakeMap(tiles, tileSize)
+	gameMap := gamemap.MakeMap(blocks, tileSize)
+	tileMap := tilemap.MakeMap(tiles, tileSize)
 
-	return gameMap, nil
+	return gameMap, tileMap, nil
 }
 
 func loadTilesImage(textureFile string) (*ebiten.Image, error) {

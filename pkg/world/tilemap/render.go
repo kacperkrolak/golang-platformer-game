@@ -1,4 +1,4 @@
-package gamemap
+package tilemap
 
 import (
 	"kacperkrolak/golang-platformer-game/pkg/physics/vector"

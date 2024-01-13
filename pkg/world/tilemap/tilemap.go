@@ -1,15 +1,8 @@
-package gamemap
+package tilemap
 
 import (
-	"io"
-	"kacperkrolak/golang-platformer-game/pkg/gamemap/tile"
-	"kacperkrolak/golang-platformer-game/pkg/physics/box"
-	"kacperkrolak/golang-platformer-game/pkg/physics/vector"
+	"kacperkrolak/golang-platformer-game/pkg/world/tilemap/tile"
 )
-
-type Parser interface {
-	LoadTiles(io.Reader) [][]tile.Tile
-}
 
 type Map struct {
 	Tiles    [][]tile.Tile
@@ -22,7 +15,6 @@ func MakeMap(tiles [][]tile.Tile, tileSize int) Map {
 		TileSize: tileSize,
 	}
 	m.FindVariants()
-	m.CreateHitboxes(tileSize)
 
 	return m
 }
@@ -46,19 +38,6 @@ func (m Map) FindVariants() {
 			}
 
 			tileInstance.UpdateVariant(neighbours)
-		}
-	}
-}
-
-func (m Map) CreateHitboxes(tileSize int) {
-	for y, row := range m.Tiles {
-		for x, tile := range row {
-			if tile.IsCollidable() {
-				m.Tiles[y][x].SetHitbox(box.Box{
-					Position: vector.Vector2{X: float64(x * tileSize), Y: float64(y * tileSize)},
-					Size:     vector.Vector2{X: float64(tileSize), Y: float64(tileSize)},
-				})
-			}
 		}
 	}
 }

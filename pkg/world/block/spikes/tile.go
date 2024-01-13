@@ -2,10 +2,9 @@ package spikes
 
 import (
 	"image"
-	"kacperkrolak/golang-platformer-game/pkg/gamemap/tile"
 	"kacperkrolak/golang-platformer-game/pkg/physics/box"
-	"kacperkrolak/golang-platformer-game/pkg/physics/rigidbody"
 	"kacperkrolak/golang-platformer-game/pkg/physics/vector"
+	"kacperkrolak/golang-platformer-game/pkg/world/tilemap/tile"
 	"math"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -14,14 +13,6 @@ import (
 type Tile struct {
 	variant uint8
 	hitbox  box.Box
-}
-
-func (t *Tile) IsCollidable() bool {
-	return true
-}
-
-func (t Tile) IsSolid() bool {
-	return false
 }
 
 var TilePosition vector.Vector2 = vector.Vector2{X: 16, Y: 47}
@@ -60,33 +51,22 @@ func (t Tile) preprocessTileImage(tileImg *ebiten.Image, tileSize int) *ebiten.I
 
 func (t *Tile) UpdateVariant(neighbours [4]tile.Tile) {
 	variant := uint8(0)
-	if neighbours[0] != nil && !neighbours[0].IsSolid() {
+	if neighbours[0] != nil && neighbours[0].GetGroup() != "solid" {
 		variant |= tile.LEFT
 	}
-	if neighbours[1] != nil && !neighbours[1].IsSolid() {
+	if neighbours[1] != nil && neighbours[1].GetGroup() != "solid" {
 		variant |= tile.TOP
 	}
-	if neighbours[2] != nil && !neighbours[2].IsSolid() {
+	if neighbours[2] != nil && neighbours[2].GetGroup() != "solid" {
 		variant |= tile.RIGHT
 	}
-	if neighbours[3] != nil && !neighbours[3].IsSolid() {
+	if neighbours[3] != nil && neighbours[3].GetGroup() != "solid" {
 		variant |= tile.BOTTOM
 	}
 
 	t.variant = variant
 }
 
-func (t Tile) Hitbox() box.Box {
-	return t.hitbox
-}
-
-func (t *Tile) SetHitbox(hitbox box.Box) {
-	t.hitbox = hitbox
-}
-
-func (t Tile) IsDeadly() bool {
-	return true
-}
-
-func (t Tile) OnCollision(rigidbody *rigidbody.Rigidbody) {
+func (t Tile) GetGroup() string {
+	return "obstacle"
 }

@@ -1,11 +1,9 @@
-package tile
+package block
 
 import (
 	"kacperkrolak/golang-platformer-game/pkg/physics/box"
 	"kacperkrolak/golang-platformer-game/pkg/physics/rigidbody"
-	"kacperkrolak/golang-platformer-game/pkg/physics/vector"
-
-	"github.com/hajimehoshi/ebiten/v2"
+	"kacperkrolak/golang-platformer-game/pkg/world/tilemap/tile"
 )
 
 // Flags to indecate whether there different type of tile on the left, right, top or bottom.
@@ -28,13 +26,13 @@ const (
 	BOTTOM_LEFT_RIGHT = BOTTOM | LEFT | RIGHT
 )
 
-type Tile interface {
+type Block interface {
 	IsCollidable() bool
 	IsSolid() bool
-	UpdateVariant([4]Tile) // Neighbours: left, top, right, bottom
-	Draw(*ebiten.Image, vector.Vector2, *ebiten.Image, int)
 	Hitbox() box.Box
 	SetHitbox(box.Box)
 	IsDeadly() bool
 	OnCollision(*rigidbody.Rigidbody)
+	AdaptToNeighbours([4]Block) // Neighbours: left, top, right, bottom
+	tile.Tile
 }

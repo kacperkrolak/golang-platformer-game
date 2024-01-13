@@ -1,10 +1,10 @@
 package parser
 
 import (
-	"kacperkrolak/golang-platformer-game/pkg/gamemap/tile"
-	"kacperkrolak/golang-platformer-game/pkg/gamemap/tile/empty"
-	"kacperkrolak/golang-platformer-game/pkg/gamemap/tile/ground"
-	"kacperkrolak/golang-platformer-game/pkg/gamemap/tile/spikes"
+	"kacperkrolak/golang-platformer-game/pkg/world/block/empty"
+	"kacperkrolak/golang-platformer-game/pkg/world/block/ground"
+	"kacperkrolak/golang-platformer-game/pkg/world/block/spikes"
+	"kacperkrolak/golang-platformer-game/pkg/world/tilemap/tile"
 	"reflect"
 	"strings"
 	"testing"
