@@ -2,10 +2,12 @@ package player
 
 import (
 	"image"
+	"image/color"
 	"kacperkrolak/golang-platformer-game/pkg/physics/vector"
 	"math"
 
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 )
 
 var RUN_1 = vector.Vector2{X: 9, Y: 42}
@@ -29,4 +31,9 @@ func (p *Player) Draw(screen *ebiten.Image, offsetX float64, offsetY float64, ch
 	op.GeoM.Translate(offsetX+p.Rigidbody.Hitbox.Left(), offsetY+p.Rigidbody.Hitbox.Top())
 
 	screen.DrawImage(characterFrame, op)
+
+	surfaceDet := p.SurfaceDetector()
+
+	// Draw surface detector
+	ebitenutil.DrawRect(screen, offsetX+surfaceDet.Left(), offsetY+surfaceDet.Top(), surfaceDet.Size.X, surfaceDet.Size.Y, color.RGBA{255, 0, 0, 255})
 }

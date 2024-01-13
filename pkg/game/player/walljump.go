@@ -54,6 +54,9 @@ func (p Player) WallDetector() box.Box {
 func (p *Player) UpdateWallSlidingState(wallSliding bool) {
 	if !p.IsWalled() && wallSliding && p.wallJumpData.WallSlidingTime <= 0 {
 		p.ParticleSystem.AddParticles(smoke.CreateEffect(p.SurfaceDetector().Center(), 5, 1, 0.5, 60, color.RGBA{R: 222, G: 184, B: 135, A: 255}))
+		if p.Rigidbody.Velocity.Y > 0 {
+			p.Rigidbody.Velocity.Y = 0
+		}
 	}
 
 	wallSlidingTimeLimit := time.Millisecond * time.Duration(150)

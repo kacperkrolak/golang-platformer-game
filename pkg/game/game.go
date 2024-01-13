@@ -104,9 +104,8 @@ func (g *Game) Update() error {
 
 	g.player.Update(deltaTime, g.tileSize)
 
-	displacementSum := vector.Vector2{X: 0, Y: 0}
-	for i, row := range g.gameMap.Tiles {
-		for j, t := range row {
+	if collidedWith := g.gameMap.CollidesWith(g.player.Rigidbody.Hitbox); len(collidedWith) > 0 {
+		for _, t := range collidedWith {
 			if !t.IsCollidable() {
 				continue
 			}
@@ -120,18 +119,11 @@ func (g *Game) Update() error {
 				continue
 			}
 
-			hitbox := box.Box{
-				Position: vector.Vector2{X: float64(j * g.tileSize), Y: float64(i * g.tileSize)},
-				Size:     vector.Vector2{X: float64(g.tileSize), Y: float64(g.tileSize)},
-			}
-			displacement := hitbox.DisplacementVector(g.player.Rigidbody.Hitbox)
-			displacementSum.Add(displacement)
+			displacement := t.Hitbox().DisplacementVector(g.player.Rigidbody.Hitbox)
+			g.player.OnBumping(displacement)
+			g.player.Rigidbody.Hitbox.Position.Add(displacement)
 		}
 	}
-
-	g.player.OnBumping(displacementSum)
-	g.player.Rigidbody.Hitbox.Position.Add(displacementSum)
-	// g.player.Rigidbody.ApplyAcceleration()
 
 	g.particleSystem.Update()
 

@@ -86,8 +86,7 @@ func (p Player) OnBumping(displacementVector vector.Vector2) {
 	if displacementVector.Y > 0 {
 		p.Rigidbody.Velocity.Y = 0
 		p.Rigidbody.AddForce(vector.Down().Scaled(p.motion.Gravity).Scaled(2))
-	}
-	if displacementVector.Y < 0 {
+	} else if displacementVector.Y < 0 {
 		p.Rigidbody.Velocity.Y = 0
 	}
 }
