@@ -1,3 +1,4 @@
+// Package spikes represents Spikes by implementing the block.Block interface.
 package spikes
 
 import (

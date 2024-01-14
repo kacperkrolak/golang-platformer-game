@@ -6,6 +6,7 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
+// Draw each block in the map in positions relative to the camera.
 func (m Map) Draw(screen *ebiten.Image, cameraOffset vector.Vector2, img *ebiten.Image, tileSize int) {
 	for i, row := range m.Blocks {
 		for j, block := range row {

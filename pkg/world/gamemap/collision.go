@@ -6,6 +6,7 @@ import (
 	"math"
 )
 
+// Check if a float precisely represents an integer.
 func isInteger(f float64) bool {
 	return f == math.Trunc(f)
 }
@@ -22,6 +23,7 @@ func integerDivide(a, b int) int {
 	return a / b
 }
 
+// Return all blocks that the box is colliding with.
 func (m Map) CollidesWith(box box.Box) []block.Block {
 	// The is made of tiles of the same size whuch don't move nor overlap,
 	// so instead if checking if the box collides with each tile, we can

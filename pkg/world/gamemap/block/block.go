@@ -6,7 +6,8 @@ import (
 	"kacperkrolak/golang-platformer-game/pkg/world/tilemap/tile"
 )
 
-// Flags to indecate whether there different type of tile on the left, right, top or bottom.
+// The following constants are used to determine which sides of a tile are
+// surrounded by other tiles.
 const (
 	LEFT              = 1 << iota
 	RIGHT             = 1 << iota
@@ -26,6 +27,9 @@ const (
 	BOTTOM_LEFT_RIGHT = BOTTOM | LEFT | RIGHT
 )
 
+// Block is a tile with additional properties related to physics.
+//
+// Most blocks will embed some kind of tile.Tile.
 type Block interface {
 	IsCollidable() bool
 	IsSolid() bool

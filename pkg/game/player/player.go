@@ -1,3 +1,6 @@
+/*
+Package player implements the player character and its logic.
+*/
 package player
 
 import (
@@ -142,5 +145,5 @@ func (p Player) IsGrounded() bool {
 
 // Player can jump a short time after leaving the ground.
 func (p Player) IsGroundedLate() bool {
-	return p.motion.DurationSinceGrounded <= time.Millisecond*50
+	return p.motion.DurationSinceGrounded <= time.Millisecond*100
 }

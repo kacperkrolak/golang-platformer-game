@@ -6,6 +6,7 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
+// Particle is a small image with simple logic and short lifespan.
 type Particle interface {
 	Update()
 	IsDead() bool

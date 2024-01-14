@@ -1,3 +1,4 @@
+// Package smoke creates and manages smoke particle effects.
 package smoke
 
 import (

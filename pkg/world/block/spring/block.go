@@ -1,3 +1,4 @@
+// Package spring represents a Spring by implementing the block.Block interface.
 package spring
 
 import (

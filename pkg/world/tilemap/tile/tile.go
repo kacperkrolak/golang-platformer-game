@@ -1,3 +1,5 @@
+// Package tile defines a structure representing a square texture
+// which can change its appearance based on its neighbours.
 package tile
 
 import (
@@ -6,7 +8,8 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
-// Flags to indecate whether there different type of tile on the left, right, top or bottom.
+// The following constants are used to determine which sides of a tile are
+// surrounded by other tiles.
 const (
 	LEFT              = 1 << iota
 	RIGHT             = 1 << iota
@@ -26,8 +29,9 @@ const (
 	BOTTOM_LEFT_RIGHT = BOTTOM | LEFT | RIGHT
 )
 
+// Tile is a square texture which can change its appearance based on its neighbours.
 type Tile interface {
-	GetGroup() string      // Tiles in the same group can be visually connected
-	UpdateVariant([4]Tile) // Neighbours: left, top, right, bottom
-	Draw(*ebiten.Image, vector.Vector2, *ebiten.Image, int)
+	GetGroup() string                                       // Tiles in the same group can be visually connected
+	UpdateVariant([4]Tile)                                  // Neighbours: left, top, right, bottom
+	Draw(*ebiten.Image, vector.Vector2, *ebiten.Image, int) // Screen, camera offset, tile sheet, tile size
 }

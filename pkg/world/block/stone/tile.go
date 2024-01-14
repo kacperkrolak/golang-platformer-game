@@ -1,3 +1,4 @@
+// Package stone represents Stone by implementing the tile.Tile interface.
 package stone
 
 import (

@@ -5,6 +5,7 @@ import (
 	"math"
 )
 
+// Limit the value to the given range.
 func clamp(f, low, high float64) float64 {
 	if f < low {
 		return low
@@ -15,6 +16,9 @@ func clamp(f, low, high float64) float64 {
 	return f
 }
 
+// Calculate the 1D position and velocity for smooth movement.
+//
+// This is a Go implementation of the algorithm described here:
 // https://stackoverflow.com/questions/61372498/how-does-mathf-smoothdamp-work-what-is-it-algorithm
 func smoothDamp1D(current, target, currentVelocity, smoothTime, deltaTime float64) (float64, float64, error) {
 	if deltaTime <= 0.0 {
@@ -52,6 +56,10 @@ func smoothDamp1D(current, target, currentVelocity, smoothTime, deltaTime float6
 	return output, currentVelocity, nil
 }
 
+// Calculate the 2D position and velocity for smooth movement.
+//
+// This is a Go implementation of the algorithm described here, but for 2D vectors:
+// https://stackoverflow.com/questions/61372498/how-does-mathf-smoothdamp-work-what-is-it-algorithm
 func SmoothDamp(current, target, currentVelocity Vector2, smoothTime, deltaTime float64) (Vector2, Vector2, error) {
 	posX, velX, err := smoothDamp1D(current.X, target.X, currentVelocity.X, smoothTime, deltaTime)
 	if err != nil {

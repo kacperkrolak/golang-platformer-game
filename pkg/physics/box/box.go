@@ -1,3 +1,8 @@
+/*
+Package box represents a rectangular area.
+
+This package assumes that the Y-axis is pointing down.
+*/
 package box
 
 import (

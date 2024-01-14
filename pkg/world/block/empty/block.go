@@ -1,3 +1,4 @@
+// Package spring represents Air by implementing the block.Block interface.
 package empty
 
 import (

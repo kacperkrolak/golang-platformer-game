@@ -4,11 +4,13 @@ import (
 	"kacperkrolak/golang-platformer-game/pkg/world/tilemap/tile"
 )
 
+// Reprents a map of tiles and their size.
 type Map struct {
 	Tiles    [][]tile.Tile
 	TileSize int
 }
 
+// Create a new tilmap and find variants for each tile.
 func MakeMap(tiles [][]tile.Tile, tileSize int) Map {
 	m := Map{
 		Tiles:    tiles,
@@ -19,7 +21,9 @@ func MakeMap(tiles [][]tile.Tile, tileSize int) Map {
 	return m
 }
 
-// For each tile, chech if there is different tile on the left, right, top or bottom.
+// Get neighbours for each tile and update their variants.
+//
+// This is done so that multiple variant of the same texture can be visually connected.
 func (m Map) FindVariants() {
 	for y, row := range m.Tiles {
 		for x, tileInstance := range row {

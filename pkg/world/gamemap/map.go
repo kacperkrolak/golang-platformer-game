@@ -6,11 +6,13 @@ import (
 	"kacperkrolak/golang-platformer-game/pkg/world/gamemap/block"
 )
 
+// Map represents a 2D array of blocks have physics and can be drawn.
 type Map struct {
 	Blocks   [][]block.Block
 	TileSize int
 }
 
+// MakeMap takes and updates blocks based on their position to create a map.
 func MakeMap(blocks [][]block.Block, tileSize int) Map {
 	m := Map{
 		Blocks:   blocks,
@@ -45,6 +47,7 @@ func (m Map) FindVariants() {
 	}
 }
 
+// Add hitbox to each block based on its position.
 func (m Map) CreateHitboxes(tileSize int) {
 	for y, row := range m.Blocks {
 		for x, tile := range row {

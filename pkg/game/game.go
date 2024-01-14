@@ -1,3 +1,12 @@
+/*
+Package game contains the main game logic.
+
+It heavily relies on the other packages. Mainly:
+- pkg/world
+- pkg/physics
+- pkg/visuals
+- ebitten
+*/
 package game
 
 import (
@@ -23,6 +32,7 @@ const (
 	ScreenHeight = 520
 )
 
+// Game contains all the game logic.
 type Game struct {
 	gameMap        gamemap.Map
 	background     tilemap.Map
@@ -36,6 +46,7 @@ type Game struct {
 
 const TileSize = 16
 
+// Initialize the game.
 func MakeGame(mapFile string, textureFile string, characterFile string) Game {
 	gameMap, tileMap, err := loadWorldMap(mapFile, TileSize)
 	if err != nil {
@@ -81,8 +92,10 @@ func MakeGame(mapFile string, textureFile string, characterFile string) Game {
 	}
 }
 
+// Update the game and all its components.
+//
+// By default, Update is run 60 times a second.
 func (g *Game) Update() error {
-	// Update is run 60 times a second by default
 	tps := float64(60)
 	deltaTime := time.Duration(1 / tps * float64(time.Second))
 
@@ -138,11 +151,12 @@ func (g *Game) Update() error {
 	return nil
 }
 
-// getScreenPosition converts map position to screen position
+// Calculate the offset of the camera.
 func (g *Game) getScreenPosition(x, y float64) (float64, float64) {
 	return ScreenWidth/2 - g.camera.Position.X, ScreenHeight/2 - g.camera.Position.Y
 }
 
+// Draw the game and all its components.
 func (g *Game) Draw(screen *ebiten.Image) {
 	// 6b978d
 	background := color.RGBA{R: 107, G: 151, B: 141, A: 255}

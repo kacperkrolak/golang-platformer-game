@@ -1,3 +1,4 @@
+// Package ground represents Ground by implementing the block.Block interface.
 package ground
 
 import (
