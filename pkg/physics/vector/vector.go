@@ -72,6 +72,10 @@ func (v *Vector2) Length() float64 {
 // Changes the vector so that its length is 1, but the direction is the same.
 func (v *Vector2) Normalize() *Vector2 {
 	length := v.Length()
+	if length == 0 {
+		return v
+	}
+
 	v.X /= length
 	v.Y /= length
 	return v

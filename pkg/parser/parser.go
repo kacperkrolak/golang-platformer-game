@@ -20,6 +20,7 @@ import (
 	"bufio"
 	"fmt"
 	"io"
+	"kacperkrolak/golang-platformer-game/pkg/physics/vector"
 	"kacperkrolak/golang-platformer-game/pkg/world/block/empty"
 	"kacperkrolak/golang-platformer-game/pkg/world/block/ground"
 	"kacperkrolak/golang-platformer-game/pkg/world/block/spikes"
@@ -27,10 +28,14 @@ import (
 	"kacperkrolak/golang-platformer-game/pkg/world/block/stone"
 	"kacperkrolak/golang-platformer-game/pkg/world/gamemap/block"
 	"kacperkrolak/golang-platformer-game/pkg/world/tilemap/tile"
+
+	"github.com/hajimehoshi/ebiten/v2"
 )
 
 // Parser is responsible for parsing a map from a reader.
 type Parser struct {
+	TileSheet *ebiten.Image
+	TileSize  int
 }
 
 // Reads a map from a reader and returns a slice of blocks and tiles.
@@ -41,28 +46,30 @@ type Parser struct {
 // <multiple rows of the same length representing blocks>
 // ---
 // <multiple rows of the same length representing tiles>
-func (parser Parser) Load(reader io.Reader) ([][]block.Block, [][]tile.Tile, error) {
+func (parser Parser) Load(reader io.Reader) (ParsedData, error) {
+	parsedData := ParsedData{}
 	if reader == nil {
-		return nil, nil, fmt.Errorf("reader cannot be nil")
+		return ParsedData{}, fmt.Errorf("reader cannot be nil")
 	}
 
 	scanner := bufio.NewScanner(reader)
-	parser.readMetaData(scanner)
-	blocks, err := parser.readMapData(scanner)
-	if err != nil {
-		return nil, nil, err
+	if err := parser.readMetaData(scanner, &parsedData); err != nil {
+		return ParsedData{}, err
 	}
 
-	tiles, err := parser.readTileMapData(scanner)
-	if err != nil {
-		return nil, nil, err
+	if err := parser.readMapData(scanner, &parsedData); err != nil {
+		return ParsedData{}, err
 	}
 
-	return blocks, tiles, nil
+	if err := parser.readTileMapData(scanner, &parsedData); err != nil {
+		return ParsedData{}, err
+	}
+
+	return parsedData, nil
 }
 
 // Reads the first part of the map which is the meta data.
-func (parser Parser) readMetaData(scanner *bufio.Scanner) error {
+func (parser Parser) readMetaData(scanner *bufio.Scanner, parsedData *ParsedData) error {
 	for scanner.Scan() {
 		line := scanner.Text()
 		if line == "---" {
@@ -74,8 +81,9 @@ func (parser Parser) readMetaData(scanner *bufio.Scanner) error {
 }
 
 // Reads the second part of the map which is the block data.
-func (parser Parser) readMapData(scanner *bufio.Scanner) ([][]block.Block, error) {
+func (parser Parser) readMapData(scanner *bufio.Scanner, parsedData *ParsedData) error {
 	blocks := make([][]block.Block, 0)
+	coinPositions := make([]vector.Vector2, 0)
 	for scanner.Scan() {
 		line := scanner.Text()
 		if line == "---" {
@@ -84,36 +92,43 @@ func (parser Parser) readMapData(scanner *bufio.Scanner) ([][]block.Block, error
 
 		row := make([]block.Block, 0)
 		for _, char := range line {
-			if char == '_' {
-				row = append(row, &empty.Block{})
-			}
-			if char == 'x' {
+			switch char {
+			case 'x':
 				row = append(row, &ground.Block{})
-			}
-			if char == '^' {
+			case '^':
 				row = append(row, &spikes.Block{})
-			}
-			if char == 's' {
+			case 's':
 				row = append(row, &spring.Block{})
+			default:
+				row = append(row, &empty.Block{})
+				if char == 'c' {
+					coinPositions = append(coinPositions, vector.Vector2{X: float64(len(row)-1) * float64(parser.TileSize), Y: float64(len(blocks)) * float64(parser.TileSize)})
+				}
+				if char == 'S' {
+					parsedData.SpawnPoint = vector.Vector2{X: float64(len(row)-1) * float64(parser.TileSize), Y: float64(len(blocks)) * float64(parser.TileSize)}
+				}
 			}
 		}
 
 		if len(blocks) > 0 && len(row) != len(blocks[0]) {
-			return nil, fmt.Errorf("all rows must have the same length")
+			return fmt.Errorf("all rows must have the same length")
 		}
 
 		blocks = append(blocks, row)
 	}
 
 	if len(blocks) == 0 {
-		return nil, fmt.Errorf("map must have at least one row")
+		return fmt.Errorf("map must have at least one row")
 	}
 
-	return blocks, nil
+	parsedData.Blocks = blocks
+	parsedData.CoinPositions = coinPositions
+
+	return nil
 }
 
 // Reads the third part of the map which is the tile data.
-func (parser Parser) readTileMapData(scanner *bufio.Scanner) ([][]tile.Tile, error) {
+func (parser Parser) readTileMapData(scanner *bufio.Scanner, parsedData *ParsedData) error {
 	tiles := make([][]tile.Tile, 0)
 	for scanner.Scan() {
 		line := scanner.Text()
@@ -131,15 +146,16 @@ func (parser Parser) readTileMapData(scanner *bufio.Scanner) ([][]tile.Tile, err
 		}
 
 		if len(tiles) > 0 && len(row) != len(tiles[0]) {
-			return nil, fmt.Errorf("all rows must have the same length")
+			return fmt.Errorf("all rows must have the same length")
 		}
 
 		tiles = append(tiles, row)
 	}
 
 	if len(tiles) == 0 {
-		return nil, fmt.Errorf("map must have at least one row")
+		return fmt.Errorf("map must have at least one row")
 	}
 
-	return tiles, nil
+	parsedData.Tiles = tiles
+	return nil
 }

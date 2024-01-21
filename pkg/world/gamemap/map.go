@@ -60,3 +60,8 @@ func (m Map) CreateHitboxes(tileSize int) {
 		}
 	}
 }
+
+// Return height of the map in pixels.
+func (m Map) Height() int {
+	return len(m.Blocks) * m.TileSize
+}

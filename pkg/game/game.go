@@ -12,6 +12,7 @@ package game
 import (
 	"fmt"
 	"image/color"
+	"kacperkrolak/golang-platformer-game/pkg/entity/manager"
 	"kacperkrolak/golang-platformer-game/pkg/game/camera"
 	"kacperkrolak/golang-platformer-game/pkg/game/player"
 	"kacperkrolak/golang-platformer-game/pkg/physics/box"
@@ -42,17 +43,15 @@ type Game struct {
 	player         *player.Player
 	camera         camera.Camera
 	particleSystem *particle.ParticleSystem
+	spawnPoint     vector.Vector2
+	entityManager  *manager.Manager
+	coinPositions  []vector.Vector2
 }
 
 const TileSize = 16
 
 // Initialize the game.
 func MakeGame(mapFile string, textureFile string, characterFile string) Game {
-	gameMap, tileMap, err := loadWorldMap(mapFile, TileSize)
-	if err != nil {
-		log.Fatal(err)
-	}
-
 	tilesImage, err := loadTilesImage(textureFile)
 	if err != nil {
 		log.Fatal(err)
@@ -63,11 +62,16 @@ func MakeGame(mapFile string, textureFile string, characterFile string) Game {
 		log.Fatal(err)
 	}
 
+	gameMap, tileMap, coinPositions, spawnPoint, err := loadWorldMap(mapFile, TileSize, tilesImage)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	particleSystem := particle.ParticleSystem{}
 	player := player.Player{
 		Rigidbody: rigidbody.Rigidbody{
 			Hitbox: box.Box{
-				Position: vector.Vector2{X: 50, Y: 0},
+				Position: vector.Vector2{X: spawnPoint.X, Y: spawnPoint.Y},
 				Size:     vector.Vector2{X: 14, Y: 21},
 			},
 		},
@@ -75,7 +79,7 @@ func MakeGame(mapFile string, textureFile string, characterFile string) Game {
 		ParticleSystem: &particleSystem,
 	}
 
-	return Game{
+	game := Game{
 		gameMap:        gameMap,
 		background:     tileMap,
 		tilesImage:     tilesImage,
@@ -83,12 +87,29 @@ func MakeGame(mapFile string, textureFile string, characterFile string) Game {
 		tileSize:       TileSize,
 		player:         &player,
 		camera: camera.Camera{
-			Position:   vector.Vector2{X: 0, Y: 0},
+			Position:   vector.Vector2{X: spawnPoint.X, Y: spawnPoint.Y},
 			Velocity:   vector.Vector2{X: 0, Y: 0},
 			Target:     &player,
 			SmoothTime: 15,
 		},
+		spawnPoint:     spawnPoint,
 		particleSystem: &particleSystem,
+		coinPositions:  coinPositions,
+		entityManager:  manager.NewManager(&particleSystem, tilesImage),
+	}
+
+	game.Reset()
+
+	return game
+}
+
+func (g *Game) Reset() {
+	g.player.Rigidbody.Hitbox.Position = g.spawnPoint
+	g.player.Rigidbody.Velocity = vector.Vector2{X: 0, Y: 0}
+
+	g.entityManager.Reset()
+	for _, position := range g.coinPositions {
+		g.entityManager.Spawn(position, manager.COIN)
 	}
 }
 
@@ -120,6 +141,11 @@ func (g *Game) Update() error {
 
 	g.player.Update(deltaTime, g.tileSize)
 
+	if g.player.Rigidbody.Hitbox.Bottom() > float64(g.gameMap.Height()) {
+		g.Reset()
+		return nil
+	}
+
 	if collidedWith := g.gameMap.CollidesWith(g.player.Rigidbody.Hitbox); len(collidedWith) > 0 {
 		for _, t := range collidedWith {
 			if !t.IsCollidable() {
@@ -130,7 +156,8 @@ func (g *Game) Update() error {
 				// Make the game more fair by allowing player to touch 1 pixel of spikes
 				displacementVector := g.player.Rigidbody.Hitbox.DisplacementVector(t.Hitbox())
 				if displacementVector.Length() > 2 {
-					g.player.Rigidbody.Hitbox.Position = vector.Vector2{X: 0, Y: 0}
+					g.Reset()
+					return nil
 				}
 				continue
 			}
@@ -142,6 +169,7 @@ func (g *Game) Update() error {
 	}
 
 	g.particleSystem.Update()
+	g.entityManager.Update(deltaTime, &g.player.Rigidbody)
 
 	err := g.camera.Update(tps)
 	if err != nil {
@@ -166,8 +194,12 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	cameraOffset := vector.Vector2{X: offsetX, Y: offsetY}
 	g.background.Draw(screen, cameraOffset, g.tilesImage, g.tileSize)
 	g.gameMap.Draw(screen, cameraOffset, g.tilesImage, g.tileSize)
+
+	g.entityManager.Draw(screen, cameraOffset)
+
 	g.player.Draw(screen, offsetX, offsetY, g.characterImage, g.tileSize)
 	g.particleSystem.Draw(screen, cameraOffset)
+
 	ebitenutil.DebugPrint(screen, fmt.Sprintf("TPS: %f, FPS: %f", ebiten.ActualTPS(), ebiten.ActualFPS()))
 }
 

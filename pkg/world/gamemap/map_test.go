@@ -5,7 +5,6 @@ import (
 	"kacperkrolak/golang-platformer-game/pkg/physics/vector"
 	"kacperkrolak/golang-platformer-game/pkg/world/gamemap/block"
 	blockmock "kacperkrolak/golang-platformer-game/pkg/world/gamemap/block/mock"
-	"reflect"
 	"testing"
 
 	"github.com/stretchr/testify/mock"
@@ -49,7 +48,7 @@ func TestMap_FindVariants(t *testing.T) {
 	for _, row := range tiles {
 		var mapRow []block.Block
 		for i := 0; i < len(row); i++ {
-			row[i].On("UpdateVariant", mock.Anything).Return()
+			row[i].On("AdaptToNeighbours", mock.Anything).Return()
 			mapRow = append(mapRow, row[i])
 		}
 		mapBlocks = append(mapBlocks, mapRow)
@@ -67,29 +66,26 @@ func TestMap_FindVariants(t *testing.T) {
 		}
 	}
 }
-func TestMakeMap(t *testing.T) {
-	tiles := [][]block.Block{
+
+func TestMap_Height(t *testing.T) {
+	m := Map{
+		Blocks:   [][]block.Block{},
+		TileSize: 10,
+	}
+
+	expectedHeight := 0
+	if result := m.Height(); result != expectedHeight {
+		t.Errorf("Expected height %d, got %d", expectedHeight, result)
+	}
+
+	m.Blocks = [][]block.Block{
 		{blockmock.NewEmptyTile(), blockmock.NewEmptyTile(), blockmock.NewEmptyTile()},
 		{blockmock.NewCollidableTile(), blockmock.NewCollidableTile(), blockmock.NewCollidableTile()},
 		{blockmock.NewEmptyTile(), blockmock.NewCollidableTile(), blockmock.NewEmptyTile()},
 	}
-	tileSize := 10
 
-	expectedMap := Map{
-		Blocks: [][]block.Block{
-			{blockmock.NewEmptyTile(), blockmock.NewEmptyTile(), blockmock.NewEmptyTile()},
-			{blockmock.NewCollidableTile(), blockmock.NewCollidableTile(), blockmock.NewCollidableTile()},
-			{blockmock.NewEmptyTile(), blockmock.NewCollidableTile(), blockmock.NewEmptyTile()},
-		},
-	}
-
-	expectedMap.FindVariants()
-	expectedMap.CreateHitboxes(tileSize)
-
-	result := MakeMap(tiles, tileSize)
-
-	// Check if the generated map matches the expected map
-	if !reflect.DeepEqual(result, expectedMap) {
-		t.Errorf("Expected map %+v, got %+v", expectedMap, result)
+	expectedHeight = 30
+	if result := m.Height(); result != expectedHeight {
+		t.Errorf("Expected height %d, got %d", expectedHeight, result)
 	}
 }

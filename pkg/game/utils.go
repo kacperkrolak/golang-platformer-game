@@ -2,31 +2,36 @@ package game
 
 import (
 	"image"
+	"kacperkrolak/golang-platformer-game/pkg/parser"
+	"kacperkrolak/golang-platformer-game/pkg/physics/vector"
 	"kacperkrolak/golang-platformer-game/pkg/world/gamemap"
-	"kacperkrolak/golang-platformer-game/pkg/world/parser"
 	"kacperkrolak/golang-platformer-game/pkg/world/tilemap"
 	"os"
 
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
-func loadWorldMap(mapFile string, tileSize int) (gamemap.Map, tilemap.Map, error) {
+func loadWorldMap(mapFile string, tileSize int, tileSheet *ebiten.Image) (gamemap.Map, tilemap.Map, []vector.Vector2, vector.Vector2, error) {
 	file, err := os.Open(mapFile)
 	if err != nil {
-		return gamemap.Map{}, tilemap.Map{}, err
+		return gamemap.Map{}, tilemap.Map{}, []vector.Vector2{}, vector.Vector2{}, err
 	}
 	defer file.Close()
 
-	parser := parser.Parser{}
-	blocks, tiles, err := parser.Load(file)
-	if err != nil {
-		return gamemap.Map{}, tilemap.Map{}, err
+	parser := parser.Parser{
+		TileSheet: tileSheet,
+		TileSize:  tileSize,
 	}
 
-	gameMap := gamemap.MakeMap(blocks, tileSize)
-	tileMap := tilemap.MakeMap(tiles, tileSize)
+	parsedData, err := parser.Load(file)
+	if err != nil {
+		return gamemap.Map{}, tilemap.Map{}, []vector.Vector2{}, vector.Vector2{}, err
+	}
 
-	return gameMap, tileMap, nil
+	gameMap := gamemap.MakeMap(parsedData.Blocks, tileSize)
+	tileMap := tilemap.MakeMap(parsedData.Tiles, tileSize)
+
+	return gameMap, tileMap, parsedData.CoinPositions, parsedData.SpawnPoint, nil
 }
 
 func loadTilesImage(textureFile string) (*ebiten.Image, error) {

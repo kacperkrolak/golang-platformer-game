@@ -2,16 +2,17 @@ package player
 
 import (
 	"image"
-	"image/color"
 	"kacperkrolak/golang-platformer-game/pkg/physics/vector"
 	"math"
 
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 )
 
+// Position of texture for each frame of running animation.
 var RUN_1 = vector.Vector2{X: 9, Y: 42}
 var RUN_2 = vector.Vector2{X: 41, Y: 41}
+
+var PLAYER_SIZE = vector.Vector2{X: 14, Y: 21}
 
 func (p *Player) Draw(screen *ebiten.Image, offsetX float64, offsetY float64, characterImage *ebiten.Image, tileSize int) {
 	isMoving := math.Abs(p.Rigidbody.Velocity.X) > 0.05
@@ -20,7 +21,7 @@ func (p *Player) Draw(screen *ebiten.Image, offsetX float64, offsetY float64, ch
 		frame = RUN_2
 	}
 
-	characterFrame := characterImage.SubImage(image.Rect(int(frame.X), int(frame.Y), int(frame.X)+14, int(frame.Y)+21)).(*ebiten.Image)
+	characterFrame := characterImage.SubImage(image.Rect(int(frame.X), int(frame.Y), int(frame.X)+int(PLAYER_SIZE.X), int(frame.Y)+int(PLAYER_SIZE.Y))).(*ebiten.Image)
 
 	op := &ebiten.DrawImageOptions{}
 	if !p.FacingRight {
@@ -31,9 +32,4 @@ func (p *Player) Draw(screen *ebiten.Image, offsetX float64, offsetY float64, ch
 	op.GeoM.Translate(offsetX+p.Rigidbody.Hitbox.Left(), offsetY+p.Rigidbody.Hitbox.Top())
 
 	screen.DrawImage(characterFrame, op)
-
-	surfaceDet := p.SurfaceDetector()
-
-	// Draw surface detector
-	ebitenutil.DrawRect(screen, offsetX+surfaceDet.Left(), offsetY+surfaceDet.Top(), surfaceDet.Size.X, surfaceDet.Size.Y, color.RGBA{255, 0, 0, 255})
 }
