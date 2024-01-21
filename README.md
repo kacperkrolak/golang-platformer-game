@@ -6,8 +6,38 @@ A simple platformer game written in Golang
 
 ## Table of Contents
 
-1. [Credits](#credits)
-2. [Game Mechanics Explanation](#game-mechanics-explanation)
+1. [Installation](#installation)
+2. [How to play](#how-to-play)
+3. [Credits](#credits)
+4. [Game Mechanics Explanation](#game-mechanics-explanation)
+
+## Installation
+
+### Prerequisites
+
+MacOS or Windows 10 (Windows 11 should work too, but I haven't tested it)
+
+### Installation
+
+1. Download the latest release from [releases page](https://github.com/kacperkrolak/golang-platformer-game/releases) for your operating system
+2. Unzip the file
+3. Run the executable (make sure `assets` folder is in the same directory as the executable)
+
+## How to play
+
+### Controls
+
+- `A` or `Left Arrow` - move left
+- `D` or `Right Arrow` - move right
+- `Space` or `W` or `Up Arrow` - jump
+
+### Performing a wall jump
+
+To perform a wall jump you need to press the jump button while touching and facing the wall.
+
+### Goal
+
+The game doesn't have a well-defined win condition, but you should try to reach the end of the map and collect all coins.
 
 ## Credits
 

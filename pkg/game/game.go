@@ -29,8 +29,8 @@ import (
 )
 
 const (
-	ScreenWidth  = 800
-	ScreenHeight = 520
+	ScreenWidth  = 16 * 32
+	ScreenHeight = 16 * 24
 )
 
 // Game contains all the game logic.
