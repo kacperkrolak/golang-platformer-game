@@ -23,7 +23,7 @@ func main() {
 	)
 
 	ebiten.SetWindowSize(game.ScreenWidth*2, game.ScreenHeight*2)
-	ebiten.SetWindowTitle("Tiles (Ebitengine Demo)")
+	ebiten.SetWindowTitle("Go Platformer Game")
 	if err := ebiten.RunGame(&g); err != nil {
 		log.Fatal(err)
 	}
